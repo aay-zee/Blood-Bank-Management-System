@@ -5,12 +5,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class CreateTables {
-    public static void main(String[] args) {
+    public static void main(String[] args)
+     {
         Connect connect = new Connect();
         Connection connection = connect.getConnection();
 
         if (connection != null) {
-            System.out.println("Connected to the database!");
+            System.out.println("Connected to the database");
             Statement statement = connect.getStatement();
 
             // Creating tables
@@ -25,7 +26,8 @@ public class CreateTables {
         }
     }
 
-    public static void createTables(Statement statement) {
+    public static void createTables(Statement statement)
+     {
         try {
             // Creating Donor table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Donor (" +
