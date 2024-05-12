@@ -10,7 +10,7 @@ public class Connect {
     private Statement statement;
 
     public Connect() {
-        try {
+        try {            //change password acc to your db
             connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root", "abc_123");
             statement = connection.createStatement();
         } catch (SQLException e) {
