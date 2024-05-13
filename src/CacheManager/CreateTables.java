@@ -1,12 +1,12 @@
 package CacheManager;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class CreateTables {
-    public static void main(String[] args)
-     {
+    public static void main(String[] args) {
         Connect connect = new Connect();
         Connection connection = connect.getConnection();
 
@@ -26,8 +26,7 @@ public class CreateTables {
         }
     }
 
-    public static void createTables(Statement statement)
-     {
+    public static void createTables(Statement statement) {
         try {
             // Creating Donor table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Donor (" +
@@ -41,14 +40,14 @@ public class CreateTables {
                     "Age INT)");
 
             // Creating BloodInventory table
-        
-statement.executeUpdate("CREATE TABLE IF NOT EXISTS BloodInventory (" +
-"SampleID INT PRIMARY KEY, " +
-"BloodGroup VARCHAR(2), " +
-"RhFactor VARCHAR(10), " +
-"Expiration DATE, " +
-"DonorID INT, " +
-"FOREIGN KEY (DonorID) REFERENCES Donor(DonorID) ON UPDATE CASCADE ON DELETE CASCADE)");
+
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS BloodInventory (" +
+                    "SampleID INT PRIMARY KEY, " +
+                    "BloodGroup VARCHAR(2), " +
+                    "RhFactor VARCHAR(10), " +
+                    "Expiration DATE, " +
+                    "DonorID INT, " +
+                    "FOREIGN KEY (DonorID) REFERENCES Donor(DonorID) ON UPDATE CASCADE ON DELETE CASCADE)");
 
             // Creating SignUp table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS SignUp (" +
@@ -63,11 +62,11 @@ statement.executeUpdate("CREATE TABLE IF NOT EXISTS BloodInventory (" +
             // Creating Recipient table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Recipient (" +
                     "RecipientID INT PRIMARY KEY, " +
-                    "Cnic_R INT(13) , " +
+                    "Cnic_R VARCHAR(13) , " +
                     "Name VARCHAR(30), " +
-                    "Contact VARCHAR(20), " +
+                    "Contact VARCHAR(11), " +
                     "Address VARCHAR(60), " +
-                    "BloodGroup VARCHAR(2), " +
+                    "BloodGroup VARCHAR(3), " +
                     "PriorityLevel INT)");
 
             // Creating Donation_History table
@@ -82,13 +81,14 @@ statement.executeUpdate("CREATE TABLE IF NOT EXISTS BloodInventory (" +
             // Creating Cross_Match table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Cross_Match (" +
                     "CrossID INT PRIMARY KEY, " +
-                    "SampleID INT,"+
+                    "SampleID INT," +
                     "DonorID INT, " +
                     "RecipientID INT, " +
                     "BloodGroup VARCHAR(2), " +
                     "Cnic_R INT(13), " +
                     "FOREIGN KEY (DonorID) REFERENCES Donor(DonorID) ON UPDATE CASCADE ON DELETE CASCADE, " +
-                    "FOREIGN KEY (RecipientID) REFERENCES Recipient(RecipientID) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                    "FOREIGN KEY (RecipientID) REFERENCES Recipient(RecipientID) ON UPDATE CASCADE ON DELETE CASCADE, "
+                    +
                     "FOREIGN KEY (SampleID) REFERENCES BloodInventory(SampleID) ON UPDATE CASCADE ON DELETE CASCADE)");
 
             System.out.println("Tables created successfully!");
