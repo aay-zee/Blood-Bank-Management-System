@@ -1,81 +1,59 @@
 CREATE DATABASE BloodBankSystem;
 USE BloodBankSystem;
 
-CREATE TABLE SignUp(
-FacilityID INT PRIMARY KEY NOT NULL,
-Name VARCHAR(30),
-Email VARCHAR(30),
-Password VARCHAR(30),
-Contact VARCHAR(20),
-Address VARCHAR(60),
-Cnic_A INT(13)
+CREATE TABLE SignUp (
+    UserID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(30),
+	Cnic_A BIGINT(13) NOT NULL,
+    Email VARCHAR(30),
+    Password VARCHAR(30),
+    Contact VARCHAR(20),
+    Address VARCHAR(60),
+    UNIQUE(Cnic_A)
 );
 
-CREATE TABLE BloodInventory(
-SampleID INT PRIMARY KEY,
-BloodGroup VARCHAR(2),
-RhFactor VARCHAR(10),
-Expiration DATE,
-FOREIGN KEY (DonorID) REFERENCES Donor(DonorID)
-ON UPDATE CASCADE
-ON DELETE CASCADE
+CREATE TABLE Donor (
+    DonorID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(30),
+	Cnic_D BIGINT(13) NOT NULL,
+    BloodGroup VARCHAR(5),
+    Contact VARCHAR(20),
+    Address VARCHAR(60),
+    Age INT,
+    LastDonation DATE,
+    UNIQUE (Cnic_D) -- Assuming CNIC is unique for each donor
 );
 
-CREATE TABLE Donor(
-DonorID INT PRIMARY KEY,
-Cnic_D INT(13) PRIMARY KEY NOT NULL,
-BloodGroup VARCHAR(2),
-Name VARCHAR(30),
-LastDonation DATE,
-Contact VARCHAR(20),
-Address VARCHAR(60),
-Age INT,
-SampleID INT,
-FOREIGN KEY (SampleID) REFERENCES BloodInventory(SampleID)
-ON UPDATE CASCADE
-ON DELETE CASCADE
+CREATE TABLE Recipient (
+    RecipientID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(30),
+    Cnic_R BIGINT(13) NOT NULL,
+    BloodGroup VARCHAR(5),
+    Contact VARCHAR(20),
+    Address VARCHAR(60),
+    PriorityLevel INT(1),
+    UNIQUE (Cnic_R)
 );
 
-CREATE TABLE Recipient(
-RecipientID INT PRIMARY KEY,
-Cnic_R INT(13) PRIMARY KEY NOT NULL,
-Name VARCHAR(30),
-Contact VARCHAR(20),
-Address VARCHAR(60),
-BloodGroup VARCHAR(2),
-PriorityLevel INT(1)
+CREATE TABLE BloodInventory (
+    SampleID INT AUTO_INCREMENT PRIMARY KEY,
+	DonorID INT,
+    BloodGroup VARCHAR(5),
+    Expiration DATE,
+    FOREIGN KEY (DonorID) REFERENCES Donor(DonorID)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
-CREATE TABLE DonationHistory(
-DonorID INT,
-RecipientID INT,
-FOREIGN KEY (DonorID) REFERENCES Donor(DonorID)
-ON UPDATE CASCADE
-ON DELETE CASCADE,
-FOREIGN KEY (RecipientID) REFERENCES Recipient(RecipientID)
-ON UPDATE CASCADE
-ON DELETE CASCADE,
-BloodGroup VARCHAR(2),
-CrossID INT PRIMARY KEY,
-FOREIGN KEY (CrossID) REFERENCES CrossMatch(CrossID)
-ON UPDATE CASCADE
-ON DELETE CASCADE
+CREATE TABLE CrossMatch (
+    CrossID INT AUTO_INCREMENT PRIMARY KEY,
+    DonorID INT,
+    RecipientID INT,
+    BloodGroup VARCHAR(5),
+    FOREIGN KEY (DonorID) REFERENCES Donor(DonorID)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    FOREIGN KEY (RecipientID) REFERENCES Recipient(RecipientID)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
-
-CREATE TABLE CrossMatch(
-CrossID INT PRIMARY KEY,
-DonorID INT,
-RecipientID INT,
-BloodGroup VARCHAR(2),
-FOREIGN KEY (DonorID) REFERENCES  Donor(DonorID)
-ON UPDATE CASCADE
-ON DELETE CASCADE,
-FOREIGN KEY (RecipientID) REFERENCES Recipient(RecipientID)
-ON UPDATE CASCADE
-ON DELETE CASCADE,
-FOREIGN KEY (SampleID) REFERENCES BloodInventory(SampleID)
-ON UPDATE CASCADE
-ON DELETE CASCADE
-);
-
-
