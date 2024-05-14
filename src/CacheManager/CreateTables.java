@@ -1,4 +1,5 @@
 package CacheManager;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -6,8 +7,7 @@ import java.sql.Statement;
 import CacheManager.Connect;
 
 public class CreateTables {
-    public static void main(String[] args)
-     {
+    public static void main(String[] args) {
         Connect connect = new Connect();
         Connection connection = connect.getConnection();
 
@@ -27,8 +27,7 @@ public class CreateTables {
         }
     }
 
-    public static void createTables(Statement statement)
-     {
+    public static void createTables(Statement statement) {
         try {
             // Creating Donor table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Donor (" +
@@ -64,6 +63,8 @@ public class CreateTables {
 
             // Creating Recipient table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Recipient (" +
+                    "RecipientID INT PRIMARY KEY, " +
+                    "Cnic_R VARCHAR(13) , " +
                     "RecipientID INT AUTO_INCREMENT PRIMARY KEY, " +
                     "Name VARCHAR(30), " +
                     "Cnic_R BIGINT(13) NOT NULL, " +
