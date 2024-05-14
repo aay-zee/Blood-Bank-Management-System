@@ -129,7 +129,7 @@ public class recipient_management extends JFrame {
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String searchText = searchField.getText().trim().toLowerCase();
-                int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 4 : 2; // Search by name or blood
+                int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 2 : 5; // Search by name or blood
                                                                                           // group
                 if (!searchText.isEmpty()) {
                     DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
