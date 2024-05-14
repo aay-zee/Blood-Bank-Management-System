@@ -1,11 +1,18 @@
 package blood.bank.system;
 
+import java.util.List;
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
+
+import CacheManager.Connect;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,6 +20,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class donor_management extends JFrame {
@@ -21,10 +29,13 @@ public class donor_management extends JFrame {
     private JButton deleteButton;
     private JTextField searchField;
     private JButton searchButton;
+    private JButton modeButton; // New button for mode switching
     private Connection connection;
+    private boolean darkMode = false; // Track current mode
 
     // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 9;
+    private static final int BIN_COLUMN_INDEX = 10;
 
     public donor_management() {
         setTitle("Donor Management");
@@ -40,15 +51,21 @@ public class donor_management extends JFrame {
                 new Object[][] {},
                 new String[] { "DonorID", "Cnic_D", "BloodGroup", "RhFactor", "Name", "LastDonation", "Contact",
                         "Address", "Age", "Flag" })); // Add a flag column
+
         donorTable.setFillsViewportHeight(true);
         donorTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         donorTable.setCellSelectionEnabled(true);
-        donorTable.setBackground(Color.decode("#FFCCCC")); // Light red color
-        JTableHeader tableHeader = donorTable.getTableHeader();
+        // donorTable.setBackground(Color.decode("#FFCCCC")); // Light red color
+        // Add the bin icon column to the table model
+        DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
+        model.addColumn("Delete"); // Add column header
 
-        // Set the background color of the column headers to a slightly darker shade of
-        // red
-        // tableHeader.setBackground(Color.decode("#FF9999"));
+        // Add the bin icon renderer and editor to the BIN_COLUMN_INDEX
+        int binIconSize = 15; // Adjust the size as needed
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellRenderer(new BinIconRenderer(binIconSize));
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellEditor(new BinIconEditor(new JCheckBox()));
+
+        JTableHeader tableHeader = donorTable.getTableHeader();
 
         // Allow editing
         donorTable.setDefaultEditor(Object.class, new DefaultCellEditor(new JTextField()));
@@ -71,15 +88,47 @@ public class donor_management extends JFrame {
         // Increase font size and height of table cells
         Font cellFont = new Font("DejaVu Sans", Font.PLAIN, 14); // Adjust the font size as needed
         donorTable.setFont(cellFont);
-
+        // Adjust the width of the Delete column and make its header invisible
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setMaxWidth(55); // Set maximum width to 50
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setMinWidth(55); // Set minimum width to 50
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setWidth(55); // Set preferred width to 50
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setMaxWidth(0); // Hide header
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setMinWidth(0); // Hide header
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setWidth(0); // Hide header
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setHeaderValue(""); // Set header value
+                                                                                                     // to empty string
         // Increase row height
         donorTable.setRowHeight(25); // Adjust the row height as needed
+        // Set table border with curved edges and padding
+
+        // Initialize UI components
+        initializeComponents();
+
+        // Fetch data from the database and populate the table
+        fetchData();
+
+        // Display the frame
+        setVisible(true);
+    }
+
+    private void initializeComponents() {
+        // Create mode button
+        modeButton = new JButton("Switch Mode");
+        modeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                switchMode();
+            }
+        });
 
         // Create buttons and search field
         addButton = new JButton("Add");
         deleteButton = new JButton("Delete");
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
+        // Add a combobox for search options
+        String[] searchOptions = { "Search by Name", "Search by Blood Group" };
+        JComboBox<String> searchOptionsComboBox = new JComboBox<>(searchOptions);
 
         // Add action listeners
         addButton.addActionListener(new ActionListener() {
@@ -95,29 +144,24 @@ public class donor_management extends JFrame {
                 // Implement deleting donor functionality
             }
         });
-
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String searchText = searchField.getText().trim().toLowerCase();
+                int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 4 : 2; // Search by name or blood
+                                                                                          // group
                 if (!searchText.isEmpty()) {
                     DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
                     TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
                     donorTable.setRowSorter(sorter);
 
-                    RowFilter<DefaultTableModel, Object> rf = null;
-                    try {
-                        rf = RowFilter.regexFilter(searchText, 4, 2); // Filtering based on Name (column 4) and
-                                                                      // BloodGroup (column 2)
-                    } catch (java.util.regex.PatternSyntaxException ex) {
-                        ex.printStackTrace();
-                    }
-                    sorter.setRowFilter(rf);
+                    RowFilter<DefaultTableModel, Object> filter = RowFilter.regexFilter("(?i)" + searchText,
+                            searchColumn); // Use case-insensitive search
+                    sorter.setRowFilter(filter);
                 } else {
                     donorTable.setRowSorter(null);
                 }
             }
         });
-
         // Add key listener for saving changes
         donorTable.addKeyListener(new KeyAdapter() {
             @Override
@@ -132,25 +176,58 @@ public class donor_management extends JFrame {
         // Add components to the frame
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonPanel.add(addButton);
-        buttonPanel.add(deleteButton);
+        // buttonPanel.add(deleteButton);
         buttonPanel.add(new JLabel("Search:"));
         buttonPanel.add(searchField);
         buttonPanel.add(searchButton);
+        buttonPanel.add(searchOptionsComboBox); // Add search options combobox
+        buttonPanel.add(searchButton);
+        buttonPanel.add(modeButton); // Add mode button
+
+        // Create rounded border
+        Border roundedBorder = new LineBorder(Color.BLACK); // You can adjust the color as needed
+        int borderRadius = 10; // Adjust the radius as needed
+        Border emptyBorder = new EmptyBorder(borderRadius, borderRadius, borderRadius, borderRadius);
+        Border compoundBorder = new CompoundBorder(roundedBorder, emptyBorder);
+
+        // Set rounded border to the table
+        donorTable.setBorder(compoundBorder);
+
+        buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of button
+                                                                                     // panel
 
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         contentPanel.add(buttonPanel, BorderLayout.NORTH);
         contentPanel.add(new JScrollPane(donorTable), BorderLayout.CENTER);
-
+        contentPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE);
         getContentPane().add(contentPanel);
         // Set the background color of the main content pane to dark red
-        getContentPane().setBackground(Color.decode("#990000")); // Dark red color
+        getContentPane().setBackground(darkMode ? Color.decode("#333333") : Color.WHITE);
 
-        // Fetch data from the database and populate the table
-        fetchData();
+        // Set table and header color based on mode
+        setTableColor(darkMode);
+    }
 
-        // Display the frame
-        setVisible(true);
+    private void switchMode() {
+        darkMode = !darkMode;
+        getContentPane().setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of
+                                                                                          // frame
+        JPanel contentPanel = (JPanel) getContentPane().getComponent(0);
+        contentPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of content
+                                                                                      // panel
+        JPanel buttonPanel = (JPanel) contentPanel.getComponent(0);
+        buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of button
+                                                                                     // panel
+        setTableColor(darkMode);
+    }
+
+    private void setTableColor(boolean isDarkMode) {
+        Color bgColor = isDarkMode ? Color.decode("#333333") : Color.WHITE;
+        donorTable.setBackground(bgColor);
+        donorTable.getTableHeader().setBackground(bgColor);
+        donorTable.setForeground(isDarkMode ? Color.WHITE : Color.BLACK);
+        donorTable.getTableHeader().setForeground(isDarkMode ? Color.WHITE : Color.BLACK);
     }
 
     private void connectToDatabase() {
@@ -218,26 +295,26 @@ public class donor_management extends JFrame {
                     insertStatement.setInt(9, Integer.parseInt((String) model.getValueAt(i, 8)));
                     insertStatement.executeUpdate();
 
-                    ResultSet generatedKeys = insertStatement.getGeneratedKeys();
-                    if (generatedKeys.next()) {
-                        donorID = generatedKeys.getInt(1);
-                        model.setValueAt(donorID, i, 0); // Update the DonorID in the table model
+                    donorID = Integer.parseInt((String) model.getValueAt(i, 0));
+                    model.setValueAt(donorID, i, 0); // Update the DonorID in the table model
 
-                        // Insert into BloodInventory table
-                        int sampleID = getNextSampleID();
-                        String bloodGroup = (String) model.getValueAt(i, 2);
-                        String rhFactor = (String) model.getValueAt(i, 3);
-                        Date expiration = calculateExpirationDate();
-
-                        String inventoryInsertQuery = "INSERT INTO BloodInventory (SampleID, BloodGroup, RhFactor, Expiration, DonorID) VALUES (?, ?, ?, ?, ?)";
-                        PreparedStatement inventoryInsertStatement = connection.prepareStatement(inventoryInsertQuery);
-                        inventoryInsertStatement.setInt(1, sampleID);
-                        inventoryInsertStatement.setString(2, bloodGroup);
-                        inventoryInsertStatement.setString(3, rhFactor);
-                        inventoryInsertStatement.setDate(4, expiration);
-                        inventoryInsertStatement.setInt(5, donorID);
+                    // Insert into BloodInventory table
+                    String bloodGroup = (String) model.getValueAt(i, 2);
+                    String rhFactor = (String) model.getValueAt(i, 3);
+                    Date expiration = calculateExpirationDate();
+                    String inventoryInsertQuery = "INSERT INTO BloodInventory (BloodGroup, RhFactor, Expiration, DonorID) VALUES (?, ?, ?, ?)";
+                    try (PreparedStatement inventoryInsertStatement = connection
+                            .prepareStatement(inventoryInsertQuery)) {
+                        inventoryInsertStatement.setString(1, bloodGroup);
+                        inventoryInsertStatement.setString(2, rhFactor);
+                        inventoryInsertStatement.setDate(3, expiration);
+                        inventoryInsertStatement.setInt(4, donorID);
                         inventoryInsertStatement.executeUpdate();
+                    } catch (SQLException ex) {
+                        System.err.println("Error inserting into BloodInventory table: " + ex.getMessage());
+                        ex.printStackTrace();
                     }
+
                     // Set the flag to false for existing rows
                     model.setValueAt(false, i, FLAG_COLUMN_INDEX);
                 } else {
@@ -306,6 +383,78 @@ public class donor_management extends JFrame {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MONTH, 2);
         return new Date(calendar.getTimeInMillis());
+    }
+
+    // Implement custom cell renderer for the bin icon
+    class BinIconRenderer extends JLabel implements TableCellRenderer {
+        private final int iconSize; // Size of the icon
+
+        public BinIconRenderer(int iconSize) {
+            this.iconSize = iconSize;
+            setOpaque(true);
+            setHorizontalAlignment(CENTER);
+            // Load the bin icon and set its size
+            ImageIcon binIcon = new ImageIcon(getClass().getResource("/icon/bin.png"));
+            Image scaledBinIcon = binIcon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+            setIcon(new ImageIcon(scaledBinIcon));
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus,
+                int row, int column) {
+            return this;
+        }
+    }
+
+    // Implement custom cell editor for the bin icon
+    class BinIconEditor extends DefaultCellEditor {
+        public BinIconEditor(JCheckBox checkBox) {
+            super(checkBox);
+            checkBox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped(); // Stop cell editing when the checkbox is clicked
+                    // Handle deletion functionality here
+                    int selectedRow = donorTable.getSelectedRow();
+                    if (selectedRow != -1) {
+                        // Get the donor ID from the selected row
+                        int donorID = (int) donorTable.getValueAt(selectedRow, 0);
+                        // Implement logic to delete the row and corresponding entries in the database
+                        deleteDonor(donorID);
+                    }
+                }
+            });
+        }
+
+        // Override getTableCellEditorComponent to return the checkbox
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            return editorComponent;
+        }
+
+        // Method to delete donor and corresponding entries in the database
+        private void deleteDonor(int donorID) {
+            try {
+                // Delete from Donor table
+                String deleteDonorQuery = "DELETE FROM Donor WHERE DonorID = ?";
+                PreparedStatement deleteDonorStatement = connection.prepareStatement(deleteDonorQuery);
+                deleteDonorStatement.setInt(1, donorID);
+                deleteDonorStatement.executeUpdate();
+
+                // Delete from BloodInventory table
+                String deleteBloodInventoryQuery = "DELETE FROM BloodInventory WHERE DonorID = ?";
+                PreparedStatement deleteBloodInventoryStatement = connection
+                        .prepareStatement(deleteBloodInventoryQuery);
+                deleteBloodInventoryStatement.setInt(1, donorID);
+                deleteBloodInventoryStatement.executeUpdate();
+
+                // Remove row from the table
+                DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
+                model.removeRow(donorTable.getSelectedRow());
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                // Handle exception
+            }
+        }
     }
 
     public static void main(String[] args) {
