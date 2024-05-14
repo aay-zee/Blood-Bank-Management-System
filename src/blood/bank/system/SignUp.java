@@ -36,7 +36,7 @@ public class SignUp extends JFrame implements ActionListener {
         label2.setBounds(345,70,600,30);
         add(label2);
 
-        JLabel labelFID=new JLabel("Facility ID: ");
+        JLabel labelFID=new JLabel("User ID: ");
         labelFID.setFont(new Font("Raleway",Font.BOLD,20));
         labelFID.setBounds(100,190,150,30);
         add(labelFID);
