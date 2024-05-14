@@ -8,10 +8,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import CacheManager.Connect;
+import blood.bank.system.donor_management.BinIconEditor;
+import blood.bank.system.donor_management.BinIconRenderer;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -34,6 +37,7 @@ public class recipient_management extends JFrame {
 
     // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 8;
+    private static final int BIN_COLUMN_INDEX = 9;
 
     public recipient_management() {
         setTitle("Recipient Management");
@@ -49,13 +53,19 @@ public class recipient_management extends JFrame {
                 new Object[][] {},
                 new String[] { "RecipientID", "Cnic_R", "Name", "Contact", "Address", "BloodGroup", "RhFactor",
                         "PriorityLevel", "Flag" })); // Add a flag column
-        recipientTable.setFillsViewportHeight(true);
-        recipientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        recipientTable.setCellSelectionEnabled(true);
-        recipientTable.setFillsViewportHeight(true);
-        recipientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        recipientTable.setCellSelectionEnabled(true);
+                        recipientTable.setFillsViewportHeight(true);
+                        recipientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                        recipientTable.setCellSelectionEnabled(true);
+                        recipientTable.setCellSelectionEnabled(true);
         // donorTable.setBackground(Color.decode("#FFCCCC")); // Light red color
+        // Add the bin icon column to the table model
+        DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
+        model.addColumn("Delete"); // Add column header
+
+        // Add the bin icon renderer and editor to the BIN_COLUMN_INDEX
+        int binIconSize = 15; // Adjust the size as needed
+        recipientTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellRenderer(new BinIconRenderer(binIconSize));
+        recipientTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellEditor(new BinIconEditor(new JCheckBox()));
         JTableHeader tableHeader = recipientTable.getTableHeader();
 
         // Allow editing
@@ -221,6 +231,70 @@ public class recipient_management extends JFrame {
             e.printStackTrace();
         }
     }
+
+     // Implement custom cell renderer for the bin icon
+    class BinIconRenderer extends JLabel implements TableCellRenderer {
+        private final int iconSize; // Size of the icon
+
+        public BinIconRenderer(int iconSize) {
+            this.iconSize = iconSize;
+            setOpaque(true);
+            setHorizontalAlignment(CENTER);
+            // Load the bin icon and set its size
+            ImageIcon binIcon = new ImageIcon(getClass().getResource("/icon/bin.png"));
+            Image scaledBinIcon = binIcon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+            setIcon(new ImageIcon(scaledBinIcon));
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus,
+                int row, int column) {
+            return this;
+        }
+    }
+    // Implement custom cell editor for the bin icon
+    class BinIconEditor extends DefaultCellEditor {
+        public BinIconEditor(JCheckBox checkBox) {
+            super(checkBox);
+            checkBox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped(); // Stop cell editing when the checkbox is clicked
+                    // Handle deletion functionality here
+                    int selectedRow = recipientTable.getSelectedRow();
+                    if (selectedRow != -1) {
+                        // Get the donor ID from the selected row
+                        int recipientID = (int) recipientTable.getValueAt(selectedRow, 0);
+                        // Implement logic to delete the row and corresponding entries in the database
+                        deleteRecipient(recipientID);
+                    }
+                }
+            });
+        }
+
+        // Override getTableCellEditorComponent to return the checkbox
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            return editorComponent;
+        }
+
+        // Method to delete donor and corresponding entries in the database
+        private void deleteRecipient(int donorID) {
+            try {
+                // Delete from Donor table
+                String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
+                PreparedStatement deleteRecipientStatement = connection.prepareStatement(deleteRecipientQuery);
+                deleteRecipientStatement.setInt(1, donorID);
+                deleteRecipientStatement.executeUpdate();
+                // Remove row from the table
+                DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
+                model.removeRow(recipientTable.getSelectedRow());
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                // Handle exception
+            }
+        }
+    }
+
 
     private void fetchData() {
         try {
