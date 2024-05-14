@@ -8,6 +8,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -34,6 +35,7 @@ public class donor_management extends JFrame {
 
     // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 9;
+    private static final int BIN_COLUMN_INDEX = 10;
 
     public donor_management() {
         setTitle("Donor Management");
@@ -49,13 +51,20 @@ public class donor_management extends JFrame {
                 new Object[][] {},
                 new String[] { "DonorID", "Cnic_D", "BloodGroup", "RhFactor", "Name", "LastDonation", "Contact",
                         "Address", "Age", "Flag" })); // Add a flag column
-        donorTable.setFillsViewportHeight(true);
-        donorTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        donorTable.setCellSelectionEnabled(true);
+
         donorTable.setFillsViewportHeight(true);
         donorTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         donorTable.setCellSelectionEnabled(true);
         // donorTable.setBackground(Color.decode("#FFCCCC")); // Light red color
+        // Add the bin icon column to the table model
+        DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
+        model.addColumn("Delete"); // Add column header
+
+        // Add the bin icon renderer and editor to the BIN_COLUMN_INDEX
+        int binIconSize = 15; // Adjust the size as needed
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellRenderer(new BinIconRenderer(binIconSize));
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellEditor(new BinIconEditor(new JCheckBox()));
+
         JTableHeader tableHeader = donorTable.getTableHeader();
 
         // Allow editing
@@ -79,7 +88,15 @@ public class donor_management extends JFrame {
         // Increase font size and height of table cells
         Font cellFont = new Font("DejaVu Sans", Font.PLAIN, 14); // Adjust the font size as needed
         donorTable.setFont(cellFont);
-
+        // Adjust the width of the Delete column and make its header invisible
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setMaxWidth(55); // Set maximum width to 50
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setMinWidth(55); // Set minimum width to 50
+        donorTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setWidth(55); // Set preferred width to 50
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setMaxWidth(0); // Hide header
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setMinWidth(0); // Hide header
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setWidth(0); // Hide header
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setHeaderValue(""); // Set header value
+                                                                                                     // to empty string
         // Increase row height
         donorTable.setRowHeight(25); // Adjust the row height as needed
         // Set table border with curved edges and padding
@@ -366,6 +383,78 @@ public class donor_management extends JFrame {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MONTH, 2);
         return new Date(calendar.getTimeInMillis());
+    }
+
+    // Implement custom cell renderer for the bin icon
+    class BinIconRenderer extends JLabel implements TableCellRenderer {
+        private final int iconSize; // Size of the icon
+
+        public BinIconRenderer(int iconSize) {
+            this.iconSize = iconSize;
+            setOpaque(true);
+            setHorizontalAlignment(CENTER);
+            // Load the bin icon and set its size
+            ImageIcon binIcon = new ImageIcon(getClass().getResource("/icon/bin.png"));
+            Image scaledBinIcon = binIcon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+            setIcon(new ImageIcon(scaledBinIcon));
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus,
+                int row, int column) {
+            return this;
+        }
+    }
+
+    // Implement custom cell editor for the bin icon
+    class BinIconEditor extends DefaultCellEditor {
+        public BinIconEditor(JCheckBox checkBox) {
+            super(checkBox);
+            checkBox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped(); // Stop cell editing when the checkbox is clicked
+                    // Handle deletion functionality here
+                    int selectedRow = donorTable.getSelectedRow();
+                    if (selectedRow != -1) {
+                        // Get the donor ID from the selected row
+                        int donorID = (int) donorTable.getValueAt(selectedRow, 0);
+                        // Implement logic to delete the row and corresponding entries in the database
+                        deleteDonor(donorID);
+                    }
+                }
+            });
+        }
+
+        // Override getTableCellEditorComponent to return the checkbox
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            return editorComponent;
+        }
+
+        // Method to delete donor and corresponding entries in the database
+        private void deleteDonor(int donorID) {
+            try {
+                // Delete from Donor table
+                String deleteDonorQuery = "DELETE FROM Donor WHERE DonorID = ?";
+                PreparedStatement deleteDonorStatement = connection.prepareStatement(deleteDonorQuery);
+                deleteDonorStatement.setInt(1, donorID);
+                deleteDonorStatement.executeUpdate();
+
+                // Delete from BloodInventory table
+                String deleteBloodInventoryQuery = "DELETE FROM BloodInventory WHERE DonorID = ?";
+                PreparedStatement deleteBloodInventoryStatement = connection
+                        .prepareStatement(deleteBloodInventoryQuery);
+                deleteBloodInventoryStatement.setInt(1, donorID);
+                deleteBloodInventoryStatement.executeUpdate();
+
+                // Remove row from the table
+                DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
+                model.removeRow(donorTable.getSelectedRow());
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                // Handle exception
+            }
+        }
     }
 
     public static void main(String[] args) {
