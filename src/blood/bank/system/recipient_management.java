@@ -225,7 +225,7 @@ public class recipient_management extends JFrame {
     private void fetchData() {
         try {
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM Donor");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM Recipient");
 
             // Populate the DefaultTableModel with data from the ResultSet
             DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
@@ -265,17 +265,20 @@ public class recipient_management extends JFrame {
                     String insertQuery = "INSERT INTO Recipient (Cnic_R, Name, Contact, Address, BloodGroup, RhFactor, PriorityLevel) VALUES (?, ?, ?, ?, ?, ?, ?)";
                     PreparedStatement insertStatement = connection.prepareStatement(insertQuery,
                             Statement.RETURN_GENERATED_KEYS);
-                    insertStatement.setLong(2, Long.parseLong((String) model.getValueAt(i, 1)));
+                    insertStatement.setLong(1, Long.parseLong((String) model.getValueAt(i, 1)));
                     insertStatement.setString(2, (String) model.getValueAt(i, 2)); // Name
                     insertStatement.setString(3, (String) model.getValueAt(i, 3)); // Contact
                     insertStatement.setString(4, (String) model.getValueAt(i, 4)); // Address
                     insertStatement.setString(5, (String) model.getValueAt(i, 5)); // BloodGroup
                     insertStatement.setString(6, (String) model.getValueAt(i, 6)); // RhFactor
-                    insertStatement.setInt(7, (Integer) model.getValueAt(i, 7)); // PriorityLevel
+                    insertStatement.setInt(7, Integer.parseInt((String) model.getValueAt(i, 7))); // PriorityLevel
                     insertStatement.executeUpdate();
 
-                    recipientID = Integer.parseInt((String) model.getValueAt(i, 0));
-                    model.setValueAt(recipientID, i, 0); // Update the RecipientID in the table model
+                    ResultSet generatedKeys = insertStatement.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        recipientID = generatedKeys.getInt(1);
+                        model.setValueAt(recipientID, i, 0); // Update the RecipientID in the table model
+                    }
 
                     // Set the flag to false for existing rows
                     model.setValueAt(false, i, FLAG_COLUMN_INDEX);
@@ -288,10 +291,8 @@ public class recipient_management extends JFrame {
                     String address = (String) model.getValueAt(i, 4);
                     String bloodGroup = (String) model.getValueAt(i, 5);
                     String rhFactor = (String) model.getValueAt(i, 6);
-                    // int priorityLevel = (Integer) model.getValueAt(i, 7);
-                    // Ensure data type before conversion
-                    String priorityLevelStr = (String) model.getValueAt(i, 7);
-                    Integer priorityLevel = Integer.parseInt(priorityLevelStr);
+                    int priorityLevel = Integer.parseInt((String) model.getValueAt(i, 7)); // Convert String to Integer
+
                     // Update the corresponding record in the database
                     String updateQuery = "UPDATE Recipient SET Cnic_R=?, Name=?, Contact=?, Address=?, BloodGroup=?, RhFactor=?, PriorityLevel=? WHERE RecipientID=?";
                     PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
@@ -302,7 +303,7 @@ public class recipient_management extends JFrame {
                     updateStatement.setString(5, bloodGroup);
                     updateStatement.setString(6, rhFactor);
                     updateStatement.setInt(7, priorityLevel);
-                    updateStatement.setInt(0, recipientID);
+                    updateStatement.setInt(8, recipientID);
                     updateStatement.executeUpdate();
                 }
             }
