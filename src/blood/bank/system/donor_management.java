@@ -31,6 +31,7 @@ public class donor_management extends JFrame {
     private JButton deleteButton;
     private JTextField searchField;
     private JButton searchButton;
+    private JButton backButton;
     private JButton modeButton; // New button for mode switching
     private Connection connection;
     private boolean darkMode = false; // Track current mode
@@ -42,7 +43,7 @@ public class donor_management extends JFrame {
     public donor_management() {
         setTitle("Donor Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(950, 600);
 
         // Connect to the database
         connectToDatabase();
@@ -127,11 +128,19 @@ public class donor_management extends JFrame {
         deleteButton = new JButton("Delete");
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
+        backButton = new JButton("Home");
         // Add a combobox for search options
         String[] searchOptions = { "Search by Name", "Search by Blood Group" };
         JComboBox<String> searchOptionsComboBox = new JComboBox<>(searchOptions);
 
         // Add action listeners
+        backButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                // Code to navigate to the home screen
+                dispose(); // Close the current frame
+                new blood.bank.system.Home().setVisible(true); // Open the Home screen
+            }
+        });
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Add an empty row to the table with flag set to true
@@ -140,11 +149,6 @@ public class donor_management extends JFrame {
             }
         });
 
-        deleteButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Implement deleting donor functionality
-            }
-        });
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String searchText = searchField.getText().trim().toLowerCase();
@@ -236,6 +240,7 @@ public class donor_management extends JFrame {
 
         // Add components to the frame
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        buttonPanel.add(backButton);
         buttonPanel.add(addButton);
         buttonPanel.add(new JLabel("Search:"));
         buttonPanel.add(searchField);

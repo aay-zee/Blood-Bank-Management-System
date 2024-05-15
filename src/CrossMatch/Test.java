@@ -1,4 +1,5 @@
 package CrossMatch;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -25,29 +26,30 @@ import blood.bank.system.Home;
 public class Test extends javax.swing.JFrame {
 
     private JPanel spacerPanel;
-    //test form
+
+    // test form
     public Test() {
         initComponents();
         applyTableStyle(jTable1);
         Font font = new Font("Arial", Font.PLAIN, 30);
         Font headerFont = new Font("Arial", Font.BOLD, 30);
-        txtSearch.setFont(font); 
-        txtSearch.setForeground(Color.BLACK); 
-        cmdSearch.setFont(font); 
-        cmdMatch.setFont(font); 
-        cmdDelete.setFont(font); 
-        cmdFilter.setFont(font); 
-        cmdSearch.setBackground(Color.BLACK); 
-        cmdMatch.setBackground(Color.BLACK); 
-        cmdDelete.setBackground(Color.BLACK); 
-        cmdFilter.setBackground(Color.BLACK); 
-        cmdSearch.setForeground(Color.WHITE); 
-        cmdMatch.setForeground(Color.WHITE); 
-        cmdDelete.setForeground(Color.WHITE); 
-        cmdFilter.setForeground(Color.WHITE); 
+        txtSearch.setFont(font);
+        txtSearch.setForeground(Color.BLACK);
+        cmdSearch.setFont(font);
+        cmdMatch.setFont(font);
+        cmdDelete.setFont(font);
+        cmdFilter.setFont(font);
+        cmdSearch.setBackground(Color.BLACK);
+        cmdMatch.setBackground(Color.BLACK);
+        cmdDelete.setBackground(Color.BLACK);
+        cmdFilter.setBackground(Color.BLACK);
+        cmdSearch.setForeground(Color.WHITE);
+        cmdMatch.setForeground(Color.WHITE);
+        cmdDelete.setForeground(Color.WHITE);
+        cmdFilter.setForeground(Color.WHITE);
 
-        jTable1.getTableHeader().setFont(headerFont); 
-  
+        jTable1.getTableHeader().setFont(headerFont);
+
         // Adjusting layout constraints to move the table columns down
         jScrollPane1.setLocation(10, 200); // Adjust the Y coordinate as needed
 
@@ -55,64 +57,47 @@ public class Test extends javax.swing.JFrame {
         jTable1.setBackground(Color.WHITE);
 
         // Adjusting size and font for the search bar
-txtSearch.setFont(new Font("Arial", Font.PLAIN, 28)); 
-txtSearch.setPreferredSize(new Dimension(400, 35)); 
+        txtSearch.setFont(new Font("Arial", Font.PLAIN, 28));
+        txtSearch.setPreferredSize(new Dimension(400, 35));
 
-// Adjusting size and font for the buttons
-cmdSearch.setFont(new Font("Arial", Font.PLAIN, 28)); 
-cmdSearch.setPreferredSize(new Dimension(120, 60)); 
-cmdMatch.setFont(new Font("Arial", Font.PLAIN, 28)); 
-cmdMatch.setPreferredSize(new Dimension(120, 60)); 
-cmdDelete.setFont(new Font("Arial", Font.PLAIN, 28)); 
-cmdDelete.setPreferredSize(new Dimension(120, 60)); 
-cmdFilter.setFont(new Font("Arial", Font.PLAIN, 28)); 
-cmdFilter.setPreferredSize(new Dimension(120, 60)); 
+        // Adjusting size and font for the buttons
+        cmdSearch.setFont(new Font("Arial", Font.PLAIN, 28));
+        cmdSearch.setPreferredSize(new Dimension(120, 60));
+        cmdMatch.setFont(new Font("Arial", Font.PLAIN, 28));
+        cmdMatch.setPreferredSize(new Dimension(120, 60));
+        cmdDelete.setFont(new Font("Arial", Font.PLAIN, 28));
+        cmdDelete.setPreferredSize(new Dimension(120, 60));
+        cmdFilter.setFont(new Font("Arial", Font.PLAIN, 28));
+        cmdFilter.setPreferredSize(new Dimension(120, 60));
 
-  // Create spacer panel and set preferred size to add space at the top
-spacerPanel = new JPanel();
-spacerPanel.setPreferredSize(new Dimension(800, 100)); // Adjust height as needed
-spacerPanel.setBackground(Color.WHITE);
-spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
-add(spacerPanel, BorderLayout.NORTH);
+        // Create spacer panel and set preferred size to add space at the top
+        spacerPanel = new JPanel();
+        spacerPanel.setPreferredSize(new Dimension(800, 100)); // Adjust height as needed
+        spacerPanel.setBackground(Color.WHITE);
+        spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
+        add(spacerPanel, BorderLayout.NORTH);
 
-// Adding image
+        // Adding image
         try {
-//            // Load image
-//            String imagePath = "C:\\Users\\AR Computers\\Desktop\\Blood-Bank-Management-System\\src\\images\\img2.jpeg";
-//            File imageFile = new File(imagePath);
-            //if (imageFile.exists()) {
-                ImageIcon imageIcon = new ImageIcon(ClassLoader.getSystemResource("icon/img2.jpeg"));
-                Image i1=imageIcon.getImage().getScaledInstance(850,450,Image.SCALE_SMOOTH);
-                ImageIcon i2=new ImageIcon(i1);
-                JLabel imageLabel = new JLabel(i2);
-                imageLabel.setVerticalAlignment(JLabel.BOTTOM);
-                imageLabel.setHorizontalAlignment(JLabel.CENTER);
+            ImageIcon imageIcon = new ImageIcon(ClassLoader.getSystemResource("icon/img2.jpeg"));
+            Image i1 = imageIcon.getImage().getScaledInstance(850, 450, Image.SCALE_SMOOTH);
+            ImageIcon i2 = new ImageIcon(i1);
+            JLabel imageLabel = new JLabel(i2);
+            imageLabel.setVerticalAlignment(JLabel.BOTTOM);
+            imageLabel.setHorizontalAlignment(JLabel.CENTER);
 
-                // Create spacer panel and set preferred size to add space at the top
-                JPanel spacerPanel = new JPanel();
-                spacerPanel.setPreferredSize(new Dimension(800, 50)); // Adjust height as needed
-                spacerPanel.setBackground(Color.WHITE);
-                spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
+            JPanel spacerPanel = new JPanel();
+            spacerPanel.setPreferredSize(new Dimension(800, 50)); // Adjust height as needed
+            spacerPanel.setBackground(Color.WHITE);
+            spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
 
-                // getContentPane().add(spacerPanel, BorderLayout.NORTH);
-                // getContentPane().add(imageLabel, BorderLayout.NORTH);
+            spacerPanel.add(imageLabel);
+            add(spacerPanel);
 
-                spacerPanel.add(imageLabel);
-                add(spacerPanel);
-
-
-//            } else {
-//                System.err.println("Image file not found.");
-//            }
         } catch (Exception e) {
             System.err.println("Error loading image: " + e.getMessage());
         }
     }
-
-    // public static void main(String[] args) 
-    // {
-    //     new Test();
-    // }
 
     private void searchDonors() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -126,7 +111,8 @@ add(spacerPanel, BorderLayout.NORTH);
             return;
         }
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root", "abc_123")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root",
+                "4820")) {
             String recipientQuery = "SELECT BloodGroup, RhFactor FROM Recipient WHERE RecipientID = ?";
             try (PreparedStatement recipientStmt = conn.prepareStatement(recipientQuery)) {
                 recipientStmt.setInt(1, recipientId);
@@ -134,30 +120,33 @@ add(spacerPanel, BorderLayout.NORTH);
                     if (recipientRs.next()) {
                         String recipientBloodGroup = recipientRs.getString("BloodGroup");
                         String recipientRhFactor = recipientRs.getString("RhFactor");
-                        String donorQuery = "SELECT d.DonorID, bi.Expiration, d.Age, d.BloodGroup, d.RhFactor FROM Donor d " +
+                        String donorQuery = "SELECT d.DonorID, bi.Expiration, d.Age, d.BloodGroup, d.RhFactor FROM Donor d "
+                                +
                                 "JOIN BloodInventory bi ON d.DonorID = bi.DonorID " +
                                 "WHERE d.BloodGroup = ? AND d.RhFactor = ? ORDER BY bi.Expiration ASC";
                         try (PreparedStatement donorStmt = conn.prepareStatement(donorQuery)) {
                             donorStmt.setString(1, recipientBloodGroup);
                             donorStmt.setString(2, recipientRhFactor);
                             try (ResultSet donorRs = donorStmt.executeQuery()) {
-                                while (donorRs.next())
-                                 {
-                                    model.addRow(new Object[]{donorRs.getInt("DonorID"), donorRs.getDate("Expiration"),
-                                            donorRs.getInt("Age"), donorRs.getString("BloodGroup"), donorRs.getString("RhFactor")});
+                                while (donorRs.next()) {
+                                    model.addRow(
+                                            new Object[] { donorRs.getInt("DonorID"), donorRs.getDate("Expiration"),
+                                                    donorRs.getInt("Age"), donorRs.getString("BloodGroup"),
+                                                    donorRs.getString("RhFactor") });
                                 }
                             }
                         }
                     } else {
-                        JOptionPane.showMessageDialog(Test.this, "Recipient not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(Test.this, "Recipient not found!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(Test.this, "Error fetching data from database", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(Test.this, "Error fetching data from database", "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
-
 
     private void matchDonorRecipient() {
         int selectedRow = jTable1.getSelectedRow();
@@ -172,7 +161,8 @@ add(spacerPanel, BorderLayout.NORTH);
         String bloodGroup = (String) jTable1.getValueAt(selectedRow, 3);
         String rhFactor = (String) jTable1.getValueAt(selectedRow, 4);
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root", "abc_123")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root",
+                "4820")) {
             String insertQuery = "INSERT INTO CrossMatch (DonorID, RecipientID, BloodGroup, RhFactor) VALUES (?, ?, ?, ?)";
             try (PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
                 insertStmt.setInt(1, donorId);
@@ -181,17 +171,19 @@ add(spacerPanel, BorderLayout.NORTH);
                 insertStmt.setString(4, rhFactor);
                 insertStmt.executeUpdate();
             }
+            // String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
+            // try (PreparedStatement deleteStmt =
+            // conn.prepareStatement(deleteRecipientQuery)) {
+            // deleteStmt.setInt(1, recipientId);
+            // deleteStmt.executeUpdate();
+            // }
 
-            String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
-            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteRecipientQuery)) {
-                deleteStmt.setInt(1, recipientId);
-                deleteStmt.executeUpdate();
-            }
-
-            JOptionPane.showMessageDialog(Test.this, "Cross match is established successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(Test.this, "Cross match is established successfully.", "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(Test.this, "Error establishing cross match.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(Test.this, "Error establishing cross match.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -201,7 +193,8 @@ add(spacerPanel, BorderLayout.NORTH);
 
         int recipientId = Integer.parseInt(txtSearch.getText());
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root", "abc_123")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root",
+                "4820")) {
             String recipientQuery = "SELECT BloodGroup, RhFactor FROM Recipient WHERE RecipientID = ?";
             try (PreparedStatement recipientStmt = conn.prepareStatement(recipientQuery)) {
                 recipientStmt.setInt(1, recipientId);
@@ -209,7 +202,8 @@ add(spacerPanel, BorderLayout.NORTH);
                     if (recipientRs.next()) {
                         String recipientBloodGroup = recipientRs.getString("BloodGroup");
                         String recipientRhFactor = recipientRs.getString("RhFactor");
-                        String donorQuery = "SELECT d.DonorID, bi.Expiration, d.Age, d.BloodGroup, d.RhFactor FROM Donor d " +
+                        String donorQuery = "SELECT d.DonorID, bi.Expiration, d.Age, d.BloodGroup, d.RhFactor FROM Donor d "
+                                +
                                 "JOIN BloodInventory bi ON d.DonorID = bi.DonorID " +
                                 "WHERE d.BloodGroup = ? AND d.RhFactor = ? ORDER BY bi.Expiration ASC";
                         try (PreparedStatement donorStmt = conn.prepareStatement(donorQuery)) {
@@ -217,19 +211,23 @@ add(spacerPanel, BorderLayout.NORTH);
                             donorStmt.setString(2, recipientRhFactor);
                             try (ResultSet donorRs = donorStmt.executeQuery()) {
                                 while (donorRs.next()) {
-                                    model.addRow(new Object[]{donorRs.getInt("DonorID"), donorRs.getDate("Expiration"),
-                                            donorRs.getInt("Age"), donorRs.getString("BloodGroup"), donorRs.getString("RhFactor")});
+                                    model.addRow(
+                                            new Object[] { donorRs.getInt("DonorID"), donorRs.getDate("Expiration"),
+                                                    donorRs.getInt("Age"), donorRs.getString("BloodGroup"),
+                                                    donorRs.getString("RhFactor") });
                                 }
                             }
                         }
                     } else {
-                        JOptionPane.showMessageDialog(Test.this, "Recipient not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(Test.this, "Recipient not found!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(Test.this, "Error fetching data from database", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(Test.this, "Error fetching data from database", "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -241,15 +239,18 @@ add(spacerPanel, BorderLayout.NORTH);
         scroll.getVerticalScrollBar().putClientProperty("JScrollBar.foreground", new ColorUIResource(Color.WHITE));
         scroll.getVerticalScrollBar().putClientProperty("JScrollBar.opaque", Boolean.TRUE);
 
-        table.getTableHeader().setDefaultRenderer(getAlignmentCellRender(table.getTableHeader().getDefaultRenderer(), true));
+        table.getTableHeader()
+                .setDefaultRenderer(getAlignmentCellRender(table.getTableHeader().getDefaultRenderer(), true));
         table.setDefaultRenderer(Object.class, getAlignmentCellRender(table.getDefaultRenderer(Object.class), false));
     }
 
     private TableCellRenderer getAlignmentCellRender(TableCellRenderer oldRender, boolean header) {
         return new DefaultTableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component com = oldRender.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int column) {
+                Component com = oldRender.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                        column);
                 if (com instanceof JLabel) {
                     JLabel label = (JLabel) com;
                     if (column == 0 || column == 4) {
@@ -261,11 +262,13 @@ add(spacerPanel, BorderLayout.NORTH);
                     }
                     if (!header) {
                         if (column == 4) {
-                            if (Double.parseDouble(value.toString()) > 0) {
-                                com.setForeground(new Color(17, 182, 60));
-                                label.setText("+" + value);
-                            } else {
-                                com.setForeground(new Color(202, 48, 48));
+                            String rhFactor = value.toString();
+                            label.setText(rhFactor); // Set the text to display "+" or "-"
+                            com.setForeground(new Color(0, 0, 0)); // Set default color
+                            if (rhFactor.equals("+")) {
+                                com.setForeground(new Color(17, 182, 60)); // Green for positive Rh Factor
+                            } else if (rhFactor.equals("-")) {
+                                com.setForeground(new Color(202, 48, 48)); // Red for negative Rh Factor
                             }
                         } else {
                             if (isSelected) {
@@ -301,21 +304,19 @@ add(spacerPanel, BorderLayout.NORTH);
 
         jButton2.setText("Change Mode");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
             }
         });
-        //home button:
+        // home button:
         cmdDelete.setText(" Home ");
-cmdDelete.addActionListener(new ActionListener() {
-    public void actionPerformed(ActionEvent evt) {
-        // Code to navigate to the home screen
-        dispose(); // Close the current frame
-        new blood.bank.system.Home().setVisible(true); // Open the Home screen
-    }
-});
-crazyPanel2.add(cmdDelete);
+        cmdDelete.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                // Code to navigate to the home screen
+                dispose(); // Close the current frame
+                new blood.bank.system.Home().setVisible(true); // Open the Home screen
+            }
+        });
 
         headerPanel.setBackground(Color.BLACK);
 
@@ -327,48 +328,44 @@ crazyPanel2.add(cmdDelete);
         javax.swing.GroupLayout headerPanelLayout = new javax.swing.GroupLayout(headerPanel);
         headerPanel.setLayout(headerPanelLayout);
         headerPanelLayout.setHorizontalGroup(
-            headerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(headerPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(headerLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+                headerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(headerPanelLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(headerLabel, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addContainerGap()));
         headerPanelLayout.setVerticalGroup(
-            headerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(headerPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(headerLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+                headerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(headerPanelLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(headerLabel, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addContainerGap()));
 
         crazyPanel1.setFlatLafStyleComponent(new raven.crazypanel.FlatLafStyleComponent(
-            "background:$Table.background;[light]border:0,0,0,0,shade(@background,5%),,20;[dark]border:0,0,0,0,tint(@background,5%),,20",
-            null
-        ));
+                "background:$Table.background;[light]border:0,0,0,0,shade(@background,5%),,20;[dark]border:0,0,0,0,tint(@background,5%),,20",
+                null));
         crazyPanel1.setMigLayoutConstraints(new raven.crazypanel.MigLayoutConstraints(
-            "wrap,fill,insets 15",
-            "[fill]",
-            "[grow 0][fill]",
-            null
-        ));
+                "wrap,fill,insets 15",
+                "[fill]",
+                "[grow 0][fill]",
+                null));
 
         crazyPanel2.setFlatLafStyleComponent(new raven.crazypanel.FlatLafStyleComponent(
-            "background:$Table.background",
-            new String[]{
-                "JTextField.placeholderText=Search;background:@background",
-                "background:lighten(@background,8%);borderWidth:1",
-                "background:lighten(@background,8%);borderWidth:1",
-                "background:lighten(@background,8%);borderWidth:1"
-            }
-        ));
+                "background:$Table.background",
+                new String[] {
+                        "JTextField.placeholderText=Search;background:@background",
+                        "background:lighten(@background,8%);borderWidth:1",
+                        "background:lighten(@background,8%);borderWidth:1",
+                        "background:lighten(@background,8%);borderWidth:1"
+                }));
         crazyPanel2.setMigLayoutConstraints(new raven.crazypanel.MigLayoutConstraints(
-            "",
-            "[grow][fill][][]", 
-            "",
-            new String[]{
-                "width 200"
-            }
-        ));
+                "",
+                "[grow][fill][][]",
+                "",
+                new String[] {
+                        "width 200"
+                }));
         crazyPanel2.add(txtSearch);
 
         cmdSearch.setText(" Search ");
@@ -401,26 +398,27 @@ crazyPanel2.add(cmdDelete);
         crazyPanel1.add(crazyPanel2);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
+                new Object[][] {
 
-            },
-            new String [] {
-                "Donor ID", "    Blood Expiration Date   ", "  Donor's Age ", "   Blood Group   ", "  Rh Factor  "
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.Integer.class, java.sql.Date.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class
+                },
+                new String[] {
+                        "Donor ID", "    Blood Expiration Date   ", "  Donor's Age ", "   Blood Group   ",
+                        "  Rh Factor  "
+                }) {
+            Class[] types = new Class[] {
+                    java.lang.Integer.class, java.sql.Date.class, java.lang.Integer.class, java.lang.String.class,
+                    java.lang.String.class
             };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false
+            boolean[] canEdit = new boolean[] {
+                    false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+                return types[columnIndex];
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+                return canEdit[columnIndex];
             }
         });
         jScrollPane1.setViewportView(jTable1);
@@ -435,52 +433,57 @@ crazyPanel2.add(cmdDelete);
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(headerPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(crazyPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 1001, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton2)))
-                .addContainerGap())
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(headerPanel, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(crazyPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 1001,
+                                                Short.MAX_VALUE)
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
+                                                layout.createSequentialGroup()
+                                                        .addGap(0, 0, Short.MAX_VALUE)
+                                                        .addComponent(jButton2)))
+                                .addContainerGap()));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(headerPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton2)
-                .addGap(18, 18, 18)
-                .addComponent(crazyPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)                .addContainerGap())
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(headerPanel, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton2)
+                                .addGap(18, 18, 18)
+                                .addComponent(crazyPanel1, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 300,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap()));
 
         pack();
         setLocationRelativeTo(null);
     }
 
-    private void cmdSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdSearchActionPerformed
+    private void cmdSearchActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_cmdSearchActionPerformed
         searchDonors();
     }
 
-    private void cmdMatchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdMatchActionPerformed
+    private void cmdMatchActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_cmdMatchActionPerformed
         matchDonorRecipient();
     }
 
-    private void cmdFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdFilterActionPerformed
+    private void cmdFilterActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_cmdFilterActionPerformed
         filterDonorsByExpiration();
     }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_jButton2ActionPerformed
         // Change Mode button action
     }
 
     public static void main(String args[]) {
-          new Test();
+        new Test();
         /* Set the Nimbus look and feel */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -489,7 +492,8 @@ crazyPanel2.add(cmdDelete);
                     break;
                 }
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+                | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Test.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
 
