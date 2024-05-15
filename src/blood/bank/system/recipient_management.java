@@ -1,6 +1,8 @@
 package blood.bank.system;
 
 import java.util.List;
+import java.util.regex.Pattern;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -8,6 +10,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -31,9 +34,12 @@ public class recipient_management extends JFrame {
     private JButton modeButton; // New button for mode switching
     private Connection connection;
     private boolean darkMode = false; // Track current mode
+    private JTextField bloodGroupField;
+    private JComboBox<String> rhFactorComboBox;
 
     // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 8;
+    private static final int BIN_COLUMN_INDEX = 9;
 
     public recipient_management() {
         setTitle("Recipient Management");
@@ -52,10 +58,16 @@ public class recipient_management extends JFrame {
         recipientTable.setFillsViewportHeight(true);
         recipientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         recipientTable.setCellSelectionEnabled(true);
-        recipientTable.setFillsViewportHeight(true);
-        recipientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         recipientTable.setCellSelectionEnabled(true);
-        // donorTable.setBackground(Color.decode("#FFCCCC")); // Light red color
+        recipientTable.setBackground(Color.decode("#FFCCCC")); // Light red color
+        // Add the bin icon column to the table model
+        DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
+        model.addColumn("Delete"); // Add column header
+
+        // Add the bin icon renderer and editor to the BIN_COLUMN_INDEX
+        int binIconSize = 15; // Adjust the size as needed
+        recipientTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellRenderer(new BinIconRenderer(binIconSize));
+        recipientTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellEditor(new BinIconEditor(new JCheckBox()));
         JTableHeader tableHeader = recipientTable.getTableHeader();
 
         // Allow editing
@@ -111,13 +123,15 @@ public class recipient_management extends JFrame {
         // Add a combobox for search options
         String[] searchOptions = { "Search by Name", "Search by Blood Group" };
         JComboBox<String> searchOptionsComboBox = new JComboBox<>(searchOptions);
+        bloodGroupField = new JTextField(5);
+        rhFactorComboBox = new JComboBox<>(new String[] { "+", "-" });
 
         // Add action listeners
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Add an empty row to the table with flag set to true
                 DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
-                model.addRow(new Object[] { null, null, null, null, null, null, null, null, true });
+                model.addRow(new Object[] { null, null, null, null, null, null, null, 0, true });
             }
         });
 
@@ -129,16 +143,58 @@ public class recipient_management extends JFrame {
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String searchText = searchField.getText().trim().toLowerCase();
-                int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 4 : 2; // Search by name or blood
+                int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 2 : 5; // Search by name or blood
                                                                                           // group
+
                 if (!searchText.isEmpty()) {
                     DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
                     TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
                     recipientTable.setRowSorter(sorter);
 
-                    RowFilter<DefaultTableModel, Object> filter = RowFilter.regexFilter("(?i)" + searchText,
-                            searchColumn); // Use case-insensitive search
-                    sorter.setRowFilter(filter);
+                    RowFilter<DefaultTableModel, Object> filter;
+                    if (searchColumn == 5) {
+                        // If searching by blood group, extract the blood group and Rh factor
+                        String bloodGroup = searchText.substring(0, searchText.length() - 1).toUpperCase();
+                        String rhFactor = searchText.substring(searchText.length() - 1).toUpperCase();
+
+                        // Validate Rh factor
+                        if (!rhFactor.equals("+") && !rhFactor.equals("-")) {
+                            JOptionPane.showMessageDialog(null, "Please enter a valid Rh factor ('+' or '-').",
+                                    "Input Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+
+                        String bloodGroupRegex = "(?i)^" + Pattern.quote(bloodGroup) + "$";
+                        String rhFactorRegex = "(?i)^" + Pattern.quote(rhFactor) + "$";
+
+                        RowFilter<DefaultTableModel, Object> bloodGroupFilter = RowFilter.regexFilter(bloodGroupRegex,
+                                searchColumn);
+                        RowFilter<DefaultTableModel, Object> rhFactorFilter = RowFilter.regexFilter(rhFactorRegex,
+                                searchColumn + 1);
+
+                        List<RowFilter<DefaultTableModel, Object>> filters = new ArrayList<>();
+                        filters.add(bloodGroupFilter);
+                        filters.add(rhFactorFilter);
+
+                        filter = RowFilter.andFilter(filters);
+                        sorter.setRowFilter(filter);
+
+                        if (sorter.getViewRowCount() == 0) {
+                            JOptionPane.showMessageDialog(null,
+                                    "No records found for blood group " + bloodGroup + rhFactor, "No Records Found",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    } else {
+                        // If searching by name, match exact name
+                        String searchString = "(?i)^" + Pattern.quote(searchText) + "$"; // Match exact name
+                        filter = RowFilter.regexFilter(searchString, searchColumn);
+                        sorter.setRowFilter(filter);
+
+                        if (sorter.getViewRowCount() == 0) {
+                            JOptionPane.showMessageDialog(null, "No records found for name " + searchText,
+                                    "No Records Found", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
                 } else {
                     recipientTable.setRowSorter(null);
                 }
@@ -158,7 +214,7 @@ public class recipient_management extends JFrame {
         // Add components to the frame
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonPanel.add(addButton);
-        // buttonPanel.add(deleteButton);
+        buttonPanel.add(deleteButton);
         buttonPanel.add(new JLabel("Search:"));
         buttonPanel.add(searchField);
         buttonPanel.add(searchButton);
@@ -198,9 +254,11 @@ public class recipient_management extends JFrame {
         JPanel contentPanel = (JPanel) getContentPane().getComponent(0);
         contentPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of content
                                                                                       // panel
+
         JPanel buttonPanel = (JPanel) contentPanel.getComponent(0);
         buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of button
                                                                                      // panel
+
         setTableColor(darkMode);
     }
 
@@ -222,10 +280,74 @@ public class recipient_management extends JFrame {
         }
     }
 
+    // Implement custom cell renderer for the bin icon
+    class BinIconRenderer extends JLabel implements TableCellRenderer {
+        private final int iconSize; // Size of the icon
+
+        public BinIconRenderer(int iconSize) {
+            this.iconSize = iconSize;
+            setOpaque(true);
+            setHorizontalAlignment(CENTER);
+            // Load the bin icon and set its size
+            ImageIcon binIcon = new ImageIcon(getClass().getResource("/icon/bin.png"));
+            Image scaledBinIcon = binIcon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+            setIcon(new ImageIcon(scaledBinIcon));
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus,
+                int row, int column) {
+            return this;
+        }
+    }
+
+    // Implement custom cell editor for the bin icon
+    class BinIconEditor extends DefaultCellEditor {
+        public BinIconEditor(JCheckBox checkBox) {
+            super(checkBox);
+            checkBox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped(); // Stop cell editing when the checkbox is clicked
+                    // Handle deletion functionality here
+                    int selectedRow = recipientTable.getSelectedRow();
+                    if (selectedRow != -1) {
+                        // Get the donor ID from the selected row
+                        int recipientID = (int) recipientTable.getValueAt(selectedRow, 0);
+                        // Implement logic to delete the row and corresponding entries in the database
+                        deleteRecipient(recipientID);
+                    }
+                }
+            });
+        }
+
+        // Override// getTableCellEditorComponent to return the checkbox
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            return editorComponent;
+        }
+
+        // Method to delete donor and corresponding entries in the database
+        private void deleteRecipient(int donorID) {
+            try {
+                // Delete from Donor table
+                String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
+                PreparedStatement deleteRecipientStatement = connection.prepareStatement(deleteRecipientQuery);
+                deleteRecipientStatement.setInt(1, donorID);
+                deleteRecipientStatement.executeUpdate();
+                // Remove row from the table
+                DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
+                model.removeRow(recipientTable.getSelectedRow());
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                // Handle exception
+            }
+        }
+    }
+
     private void fetchData() {
         try {
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM Donor");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM Recipient");
 
             // Populate the DefaultTableModel with data from the ResultSet
             DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
@@ -260,38 +382,50 @@ public class recipient_management extends JFrame {
                 // Check the flag column to determine if the row is new
                 boolean isNewRow = (Boolean) model.getValueAt(i, FLAG_COLUMN_INDEX);
 
+                // Ensure proper type conversion
+                long cnic = Long.parseLong(model.getValueAt(i, 1).toString());
+                String name = model.getValueAt(i, 2).toString();
+                String contact = model.getValueAt(i, 3).toString();
+                String address = model.getValueAt(i, 4).toString();
+                String bloodGroup = model.getValueAt(i, 5).toString();
+                String rhFactor = model.getValueAt(i, 6).toString();
+                int priorityLevel = Integer.parseInt(model.getValueAt(i, 7).toString());
+
+                // Validate priority level
+                if (priorityLevel < 1 || priorityLevel > 5) {
+                    JOptionPane.showMessageDialog(this, "Priority Level must be between 1 and 5.",
+                            "Invalid Priority Level", JOptionPane.ERROR_MESSAGE);
+                    return; // Exit the method if the priority level is invalid
+                }
+
                 if (isNewRow) {
                     // Insert new row logic here
                     String insertQuery = "INSERT INTO Recipient (Cnic_R, Name, Contact, Address, BloodGroup, RhFactor, PriorityLevel) VALUES (?, ?, ?, ?, ?, ?, ?)";
                     PreparedStatement insertStatement = connection.prepareStatement(insertQuery,
                             Statement.RETURN_GENERATED_KEYS);
-                    insertStatement.setLong(2, Long.parseLong((String) model.getValueAt(i, 1)));
-                    insertStatement.setString(2, (String) model.getValueAt(i, 2)); // Name
-                    insertStatement.setString(3, (String) model.getValueAt(i, 3)); // Contact
-                    insertStatement.setString(4, (String) model.getValueAt(i, 4)); // Address
-                    insertStatement.setString(5, (String) model.getValueAt(i, 5)); // BloodGroup
-                    insertStatement.setString(6, (String) model.getValueAt(i, 6)); // RhFactor
-                    insertStatement.setInt(7, (Integer) model.getValueAt(i, 7)); // PriorityLevel
+
+                    insertStatement.setLong(1, cnic);
+                    insertStatement.setString(2, name);
+                    insertStatement.setString(3, contact);
+                    insertStatement.setString(4, address);
+                    insertStatement.setString(5, bloodGroup);
+                    insertStatement.setString(6, rhFactor);
+                    insertStatement.setInt(7, priorityLevel);
+
                     insertStatement.executeUpdate();
 
-                    recipientID = Integer.parseInt((String) model.getValueAt(i, 0));
-                    model.setValueAt(recipientID, i, 0); // Update the RecipientID in the table model
+                    ResultSet generatedKeys = insertStatement.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        recipientID = generatedKeys.getInt(1);
+                        model.setValueAt(recipientID, i, 0); // Update the RecipientID in the table model
+                    }
 
                     // Set the flag to false for existing rows
                     model.setValueAt(false, i, FLAG_COLUMN_INDEX);
                 } else {
                     // Update existing row logic here
                     recipientID = (Integer) model.getValueAt(i, 0);
-                    long cnic = Long.parseLong((String) model.getValueAt(i, 1));
-                    String name = (String) model.getValueAt(i, 2);
-                    String contact = (String) model.getValueAt(i, 3);
-                    String address = (String) model.getValueAt(i, 4);
-                    String bloodGroup = (String) model.getValueAt(i, 5);
-                    String rhFactor = (String) model.getValueAt(i, 6);
-                    // int priorityLevel = (Integer) model.getValueAt(i, 7);
-                    // Ensure data type before conversion
-                    String priorityLevelStr = (String) model.getValueAt(i, 7);
-                    Integer priorityLevel = Integer.parseInt(priorityLevelStr);
+
                     // Update the corresponding record in the database
                     String updateQuery = "UPDATE Recipient SET Cnic_R=?, Name=?, Contact=?, Address=?, BloodGroup=?, RhFactor=?, PriorityLevel=? WHERE RecipientID=?";
                     PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
@@ -302,7 +436,7 @@ public class recipient_management extends JFrame {
                     updateStatement.setString(5, bloodGroup);
                     updateStatement.setString(6, rhFactor);
                     updateStatement.setInt(7, priorityLevel);
-                    updateStatement.setInt(0, recipientID);
+                    updateStatement.setInt(8, recipientID);
                     updateStatement.executeUpdate();
                 }
             }
@@ -318,7 +452,15 @@ public class recipient_management extends JFrame {
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
-            e.printStackTrace();
+
+            // Check for SQL state for duplicate entry
+            if (e.getSQLState().equals("23000")) { // SQL state code for duplicate entry
+                JOptionPane.showMessageDialog(this,
+                        "Duplicate RecipientID or CNIC detected. Please ensure all entries are unique.",
+                        "Duplicate Entry Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                e.printStackTrace();
+            }
         } finally {
             try {
                 // Reset auto-commit mode
