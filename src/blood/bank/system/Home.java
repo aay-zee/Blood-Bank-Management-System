@@ -130,10 +130,10 @@ public class Home extends JFrame implements ActionListener {
                 }
                 else{
                     if(r1.isSelected()){
-                        //Create Donor Object Here
+                        new donor_management();
                     }
                     else if(r2.isSelected()){
-                        //Create Recipient Object Here
+                        new recipient_management();
                     }
                     else if(r3.isSelected()){
                         //Create CrossMatch Object Here

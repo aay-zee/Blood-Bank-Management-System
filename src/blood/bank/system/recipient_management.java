@@ -34,8 +34,8 @@ public class recipient_management extends JFrame {
     private JButton modeButton; // New button for mode switching
     private Connection connection;
     private boolean darkMode = false; // Track current mode
-    private JTextField bloodGroupField;
-    private JComboBox<String> rhFactorComboBox;
+
+    Connect connector = new Connect();
 
     // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 8;
@@ -47,13 +47,13 @@ public class recipient_management extends JFrame {
         setSize(800, 600);
 
         // Connect to the database
-        connectToDatabase();
+        // connectToDatabase();
 
         // Create the table
         recipientTable = new JTable();
         recipientTable.setModel(new DefaultTableModel(
                 new Object[][] {},
-                new String[] { "RecipientID", "Cnic_R", "Name", "Contact", "Address", "BloodGroup", "RhFactor",
+                new String[] { "RecipientID", "Cnic_R", "BloodGroup", "RhFactor", "Name", "Contact", "Address",
                         "PriorityLevel", "Flag" })); // Add a flag column
         recipientTable.setFillsViewportHeight(true);
         recipientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -270,84 +270,20 @@ public class recipient_management extends JFrame {
         recipientTable.getTableHeader().setForeground(isDarkMode ? Color.WHITE : Color.BLACK);
     }
 
-    private void connectToDatabase() {
-        try {
-            Connect connector = new Connect();
-            connection = connector.connection;
-            System.out.println("Connected to the database");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Implement custom cell renderer for the bin icon
-    class BinIconRenderer extends JLabel implements TableCellRenderer {
-        private final int iconSize; // Size of the icon
-
-        public BinIconRenderer(int iconSize) {
-            this.iconSize = iconSize;
-            setOpaque(true);
-            setHorizontalAlignment(CENTER);
-            // Load the bin icon and set its size
-            ImageIcon binIcon = new ImageIcon(getClass().getResource("/icon/bin.png"));
-            Image scaledBinIcon = binIcon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
-            setIcon(new ImageIcon(scaledBinIcon));
-        }
-
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus,
-                int row, int column) {
-            return this;
-        }
-    }
-
-    // Implement custom cell editor for the bin icon
-    class BinIconEditor extends DefaultCellEditor {
-        public BinIconEditor(JCheckBox checkBox) {
-            super(checkBox);
-            checkBox.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    fireEditingStopped(); // Stop cell editing when the checkbox is clicked
-                    // Handle deletion functionality here
-                    int selectedRow = recipientTable.getSelectedRow();
-                    if (selectedRow != -1) {
-                        // Get the donor ID from the selected row
-                        int recipientID = (int) recipientTable.getValueAt(selectedRow, 0);
-                        // Implement logic to delete the row and corresponding entries in the database
-                        deleteRecipient(recipientID);
-                    }
-                }
-            });
-        }
-
-        // Override// getTableCellEditorComponent to return the checkbox
-        public Component getTableCellEditorComponent(JTable table, Object value,
-                boolean isSelected, int row, int column) {
-            return editorComponent;
-        }
-
-        // Method to delete donor and corresponding entries in the database
-        private void deleteRecipient(int donorID) {
-            try {
-                // Delete from Donor table
-                String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
-                PreparedStatement deleteRecipientStatement = connection.prepareStatement(deleteRecipientQuery);
-                deleteRecipientStatement.setInt(1, donorID);
-                deleteRecipientStatement.executeUpdate();
-                // Remove row from the table
-                DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
-                model.removeRow(recipientTable.getSelectedRow());
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                // Handle exception
-            }
-        }
-    }
+    // private void connectToDatabase() {
+    // try {
+    // Connect connector = new Connect();
+    // connection = connector.getConnection();
+    // System.out.println("Connected to the database");
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    // }
 
     private void fetchData() {
         try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM Recipient");
+            // Statement statement = connection.createStatement();
+            ResultSet resultSet = connector.getStatement().executeQuery("SELECT * FROM Recipient");
 
             // Populate the DefaultTableModel with data from the ResultSet
             DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
@@ -355,11 +291,11 @@ public class recipient_management extends JFrame {
                 Object[] row = new Object[9]; // Adjusted for the added Flag column
                 row[0] = resultSet.getInt("RecipientID");
                 row[1] = resultSet.getLong("Cnic_R");
-                row[2] = resultSet.getString("Name");
-                row[3] = resultSet.getString("Contact");
-                row[4] = resultSet.getString("Address");
-                row[5] = resultSet.getString("BloodGroup");
-                row[6] = resultSet.getString("RhFactor"); // Include RhFactor
+                row[2] = resultSet.getString("BloodGroup");
+                row[3] = resultSet.getString("RhFactor");
+                row[4] = resultSet.getString("Name");
+                row[5] = resultSet.getString("Contact");
+                row[6] = resultSet.getString("Address");
                 row[7] = resultSet.getInt("PriorityLevel");
                 row[8] = false; // Flag set to false for existing records
                 model.addRow(row);
@@ -375,7 +311,7 @@ public class recipient_management extends JFrame {
 
         try {
             // Start a transaction
-            connection.setAutoCommit(false);
+            connector.getConnection().setAutoCommit(false);
 
             for (int i = 0; i < rowCount; i++) {
                 int recipientID;
@@ -400,8 +336,8 @@ public class recipient_management extends JFrame {
 
                 if (isNewRow) {
                     // Insert new row logic here
-                    String insertQuery = "INSERT INTO Recipient (Cnic_R, Name, Contact, Address, BloodGroup, RhFactor, PriorityLevel) VALUES (?, ?, ?, ?, ?, ?, ?)";
-                    PreparedStatement insertStatement = connection.prepareStatement(insertQuery,
+                    String insertQuery = "INSERT INTO Recipient (Cnic_R , BloodGroup , RhFactor , Name, Contact, Address, PriorityLevel) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    PreparedStatement insertStatement = connector.getConnection().prepareStatement(insertQuery,
                             Statement.RETURN_GENERATED_KEYS);
 
                     insertStatement.setLong(1, cnic);
@@ -427,27 +363,27 @@ public class recipient_management extends JFrame {
                     recipientID = (Integer) model.getValueAt(i, 0);
 
                     // Update the corresponding record in the database
-                    String updateQuery = "UPDATE Recipient SET Cnic_R=?, Name=?, Contact=?, Address=?, BloodGroup=?, RhFactor=?, PriorityLevel=? WHERE RecipientID=?";
-                    PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
+                    String updateQuery = "UPDATE Recipient SET Cnic_R=?, BloodGroup=?, RhFactor=?, Name=? , Contact=? , Address=? , PriorityLevel=? WHERE RecipientID=?";
+                    PreparedStatement updateStatement = connector.getConnection().prepareStatement(updateQuery);
                     updateStatement.setLong(1, cnic);
-                    updateStatement.setString(2, name);
-                    updateStatement.setString(3, contact);
-                    updateStatement.setString(4, address);
-                    updateStatement.setString(5, bloodGroup);
-                    updateStatement.setString(6, rhFactor);
+                    updateStatement.setString(2, bloodGroup);
+                    updateStatement.setString(3, rhFactor);
+                    updateStatement.setString(4, name);
+                    updateStatement.setString(5, contact);
+                    updateStatement.setString(6, address);
                     updateStatement.setInt(7, priorityLevel);
-                    updateStatement.setInt(8, recipientID);
+                    // updateStatement.setInt(0, recipientID);
                     updateStatement.executeUpdate();
                 }
             }
 
             // Commit the transaction
-            connection.commit();
+            connector.getConnection().commit();
             System.out.println("Changes saved successfully.");
         } catch (SQLException e) {
             try {
                 // Rollback the transaction if an exception occurs
-                connection.rollback();
+                connector.getConnection().rollback();
                 System.err.println("Transaction rolled back.");
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -464,7 +400,7 @@ public class recipient_management extends JFrame {
         } finally {
             try {
                 // Reset auto-commit mode
-                connection.setAutoCommit(true);
+                connector.getConnection().setAutoCommit(true);
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
