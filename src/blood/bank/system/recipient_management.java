@@ -23,12 +23,14 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Calendar;
+
 
 public class recipient_management extends JFrame {
+
     private JTable recipientTable;
     private JButton addButton;
-    private JButton deleteButton;
+    private JButton backButton;
+    private JButton sortButton;
     private JTextField searchField;
     private JButton searchButton;
     private JButton modeButton; // New button for mode switching
@@ -46,7 +48,7 @@ public class recipient_management extends JFrame {
     public recipient_management() {
         setTitle("Recipient Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(950, 600);
 
         // Connect to the database
         connectToDatabase();
@@ -119,9 +121,16 @@ public class recipient_management extends JFrame {
 
         // Create buttons and search field
         addButton = new JButton("Add");
-        deleteButton = new JButton("Delete");
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
+        sortButton = new JButton("Sort by Priority");
+        backButton = new JButton("Home");
+        sortButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                sortTableByPriority();
+            }
+        });
+
         // Add a combobox for search options
         String[] searchOptions = { "Search by Name", "Search by Blood Group" };
         JComboBox<String> searchOptionsComboBox = new JComboBox<>(searchOptions);
@@ -129,6 +138,13 @@ public class recipient_management extends JFrame {
         rhFactorComboBox = new JComboBox<>(new String[] { "+", "-" });
 
         // Add action listeners
+        backButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                // Code to navigate to the home screen
+                dispose(); // Close the current frame
+                new blood.bank.system.Home().setVisible(true); // Open the Home screen
+            }
+        });
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Add an empty row to the table with flag set to true
@@ -137,7 +153,7 @@ public class recipient_management extends JFrame {
             }
         });
 
-        deleteButton.addActionListener(new ActionListener() {
+        sortButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Implement deleting donor functionality
             }
@@ -212,17 +228,20 @@ public class recipient_management extends JFrame {
                 }
             }
         });
+        
 
         // Add components to the frame
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        buttonPanel.add(backButton);
         buttonPanel.add(addButton);
-        buttonPanel.add(deleteButton);
         buttonPanel.add(new JLabel("Search:"));
         buttonPanel.add(searchField);
         buttonPanel.add(searchButton);
         buttonPanel.add(searchOptionsComboBox); // Add search options combobox
         buttonPanel.add(searchButton);
+        buttonPanel.add(sortButton);
         buttonPanel.add(modeButton); // Add mode button
+
 
         // Create rounded border
         Border roundedBorder = new LineBorder(Color.BLACK); // You can adjust the color as needed
@@ -264,6 +283,7 @@ public class recipient_management extends JFrame {
         setTableColor(darkMode);
     }
 
+
     private void setTableColor(boolean isDarkMode) {
         Color bgColor = isDarkMode ? Color.decode("#333333") : Color.WHITE;
         recipientTable.setBackground(bgColor);
@@ -280,6 +300,19 @@ public class recipient_management extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void sortTableByPriority() {
+        DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+        recipientTable.setRowSorter(sorter);
+    
+        List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+        int priorityColumn = 7; // Index of the priority level column
+        sortKeys.add(new RowSorter.SortKey(priorityColumn, SortOrder.ASCENDING)); // Sort by priority level in ascending order
+    
+        sorter.setSortKeys(sortKeys);
+        sorter.sort();
     }
 
     // Implement custom cell renderer for the bin icon

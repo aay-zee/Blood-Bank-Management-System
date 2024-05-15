@@ -182,6 +182,12 @@ add(spacerPanel, BorderLayout.NORTH);
                 insertStmt.executeUpdate();
             }
 
+            String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteRecipientQuery)) {
+                deleteStmt.setInt(1, recipientId);
+                deleteStmt.executeUpdate();
+            }
+
             JOptionPane.showMessageDialog(Test.this, "Cross match is established successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException ex) {
             ex.printStackTrace();
