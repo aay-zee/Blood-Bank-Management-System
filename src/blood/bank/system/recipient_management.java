@@ -36,9 +36,8 @@ public class recipient_management extends JFrame {
     private boolean darkMode = false; // Track current mode
     private JTextField bloodGroupField;
     private JComboBox<String> rhFactorComboBox;
-    
-    Connect connector = new Connect();
 
+    Connect connector = new Connect();
 
     // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 8;
@@ -50,14 +49,14 @@ public class recipient_management extends JFrame {
         setSize(800, 600);
 
         // Connect to the database
-       connectToDatabase();
+        connectToDatabase();
 
         // Create the table
         recipientTable = new JTable();
         recipientTable.setModel(new DefaultTableModel(
                 new Object[][] {},
-                new String[] { "RecipientID", "Cnic_R", "BloodGroup", "RhFactor" , "Name", "Contact", "Address" ,
-                "PriorityLevel", "Flag" })); // Add a flag column
+                new String[] { "RecipientID", "Cnic_R", "BloodGroup", "RhFactor", "Name", "Contact", "Address",
+                        "PriorityLevel", "Flag" })); // Add a flag column
         recipientTable.setFillsViewportHeight(true);
         recipientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         recipientTable.setCellSelectionEnabled(true);
@@ -352,7 +351,7 @@ public class recipient_management extends JFrame {
     private void fetchData() {
         try {
             ResultSet resultSet = connector.getStatement().executeQuery("SELECT * FROM Recipient");
-           
+
             // Populate the DefaultTableModel with data from the ResultSet
             DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
             while (resultSet.next()) {
@@ -380,7 +379,6 @@ public class recipient_management extends JFrame {
         try {
             // Start a transaction
             connector.getConnection().setAutoCommit(false);
-            
 
             for (int i = 0; i < rowCount; i++) {
                 int recipientID;
@@ -407,7 +405,7 @@ public class recipient_management extends JFrame {
                     // Insert new row logic here
                     String insertQuery = "INSERT INTO Recipient (Cnic_R , BloodGroup , RhFactor , Name, Contact, Address, PriorityLevel) VALUES (?, ?, ?, ?, ?, ?, ?)";
                     PreparedStatement insertStatement = connector.getConnection().prepareStatement(insertQuery,
-                    Statement.RETURN_GENERATED_KEYS);
+                            Statement.RETURN_GENERATED_KEYS);
 
                     insertStatement.setLong(1, cnic);
                     insertStatement.setString(2, bloodGroup);
@@ -434,7 +432,7 @@ public class recipient_management extends JFrame {
                     // Update the corresponding record in the database
                     String updateQuery = "UPDATE Recipient SET Cnic_R=?, BloodGroup=?, RhFactor=?, Name=? , Contact=? , Address=? , PriorityLevel=? WHERE RecipientID=?";
                     PreparedStatement updateStatement = connector.getConnection().prepareStatement(updateQuery);
-                    
+
                     updateStatement.setLong(1, cnic);
                     updateStatement.setString(2, bloodGroup);
                     updateStatement.setString(3, rhFactor);
@@ -449,13 +447,13 @@ public class recipient_management extends JFrame {
 
             // Commit the transaction
             connector.getConnection().commit();
-            
+
             System.out.println("Changes saved successfully.");
         } catch (SQLException e) {
             try {
                 // Rollback the transaction if an exception occurs
                 connector.getConnection().rollback();
-                
+
                 System.err.println("Transaction rolled back.");
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -473,7 +471,7 @@ public class recipient_management extends JFrame {
             try {
                 // Reset auto-commit mode
                 connector.getConnection().setAutoCommit(true);
-                
+
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }

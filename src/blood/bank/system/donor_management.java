@@ -1,6 +1,8 @@
 package blood.bank.system;
 
 import java.util.List;
+import java.util.regex.Pattern;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -33,17 +35,17 @@ public class donor_management extends JFrame {
     private Connection connection;
     private boolean darkMode = false; // Track current mode
 
-    Connect connector = new Connect();
-
     // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 9;
     private static final int BIN_COLUMN_INDEX = 10;
 
     public donor_management() {
         setTitle("Donor Management");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(800, 600);
 
         // Connect to the database
-        //connectToDatabase();
+        connectToDatabase();
 
         // Create the table
         donorTable = new JTable();
@@ -95,8 +97,7 @@ public class donor_management extends JFrame {
         donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setMaxWidth(0); // Hide header
         donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setMinWidth(0); // Hide header
         donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setWidth(0); // Hide header
-        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setHeaderValue(""); // Set header value
-                                                                                                     // to empty string
+        donorTable.getTableHeader().getColumnModel().getColumn(BIN_COLUMN_INDEX).setHeaderValue("");
         // Increase row height
         donorTable.setRowHeight(25); // Adjust the row height as needed
         // Set table border with curved edges and padding
@@ -108,8 +109,6 @@ public class donor_management extends JFrame {
         fetchData();
 
         // Display the frame
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
         setVisible(true);
     }
 
@@ -151,14 +150,56 @@ public class donor_management extends JFrame {
                 String searchText = searchField.getText().trim().toLowerCase();
                 int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 4 : 2; // Search by name or blood
                                                                                           // group
+
                 if (!searchText.isEmpty()) {
                     DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
                     TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
                     donorTable.setRowSorter(sorter);
 
-                    RowFilter<DefaultTableModel, Object> filter = RowFilter.regexFilter("(?i)" + searchText,
-                            searchColumn); // Use case-insensitive search
-                    sorter.setRowFilter(filter);
+                    RowFilter<DefaultTableModel, Object> filter;
+                    if (searchColumn == 2) {
+                        // If searching by blood group, extract the blood group and Rh factor
+                        String bloodGroup = searchText.substring(0, searchText.length() - 1).toUpperCase();
+                        String rhFactor = searchText.substring(searchText.length() - 1).toUpperCase();
+
+                        // Validate Rh factor
+                        if (!rhFactor.equals("+") && !rhFactor.equals("-")) {
+                            JOptionPane.showMessageDialog(null, "Please enter a valid Rh factor ('+' or '-').",
+                                    "Input Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+
+                        String bloodGroupRegex = "(?i)^" + Pattern.quote(bloodGroup) + "$";
+                        String rhFactorRegex = "(?i)^" + Pattern.quote(rhFactor) + "$";
+
+                        RowFilter<DefaultTableModel, Object> bloodGroupFilter = RowFilter.regexFilter(bloodGroupRegex,
+                                searchColumn);
+                        RowFilter<DefaultTableModel, Object> rhFactorFilter = RowFilter.regexFilter(rhFactorRegex,
+                                searchColumn + 1);
+
+                        List<RowFilter<DefaultTableModel, Object>> filters = new ArrayList<>();
+                        filters.add(bloodGroupFilter);
+                        filters.add(rhFactorFilter);
+
+                        filter = RowFilter.andFilter(filters);
+                        sorter.setRowFilter(filter);
+
+                        if (sorter.getViewRowCount() == 0) {
+                            JOptionPane.showMessageDialog(null,
+                                    "No records found for blood group " + bloodGroup + rhFactor, "No Records Found",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    } else {
+                        // If searching by name, match exact name
+                        String searchString = "(?i)^" + Pattern.quote(searchText) + "$"; // Match exact name
+                        filter = RowFilter.regexFilter(searchString, searchColumn);
+                        sorter.setRowFilter(filter);
+
+                        if (sorter.getViewRowCount() == 0) {
+                            JOptionPane.showMessageDialog(null, "No records found for name " + searchText,
+                                    "No Records Found", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
                 } else {
                     donorTable.setRowSorter(null);
                 }
@@ -168,9 +209,18 @@ public class donor_management extends JFrame {
         donorTable.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if ((e.getKeyCode() == KeyEvent.VK_S) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-                    // Handle Ctrl+S, save changes
-                    saveChanges();
+                try {
+                    if ((e.getKeyCode() == KeyEvent.VK_S) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+                        // Handle Ctrl+S, save changes
+                        saveChanges();
+                    }
+                } catch (ClassCastException ex) {
+                    // Show alert message within AWT EventQueue thread
+                    EventQueue.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(null,
+                                "Error occurred while saving changes. Please review your changes.", "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    });
                 }
             }
         });
@@ -178,7 +228,6 @@ public class donor_management extends JFrame {
         // Add components to the frame
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonPanel.add(addButton);
-        // buttonPanel.add(deleteButton);
         buttonPanel.add(new JLabel("Search:"));
         buttonPanel.add(searchField);
         buttonPanel.add(searchButton);
@@ -195,8 +244,7 @@ public class donor_management extends JFrame {
         // Set rounded border to the table
         donorTable.setBorder(compoundBorder);
 
-        buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of button
-                                                                                     // panel
+        buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE);
 
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -213,14 +261,11 @@ public class donor_management extends JFrame {
 
     private void switchMode() {
         darkMode = !darkMode;
-        getContentPane().setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of
-                                                                                          // frame
+        getContentPane().setBackground(darkMode ? Color.decode("#333333") : Color.WHITE);
         JPanel contentPanel = (JPanel) getContentPane().getComponent(0);
-        contentPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of content
-                                                                                      // panel
+        contentPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE);
         JPanel buttonPanel = (JPanel) contentPanel.getComponent(0);
-        buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of button
-                                                                                     // panel
+        buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE);
         setTableColor(darkMode);
     }
 
@@ -232,21 +277,20 @@ public class donor_management extends JFrame {
         donorTable.getTableHeader().setForeground(isDarkMode ? Color.WHITE : Color.BLACK);
     }
 
-//    private void connectToDatabase() {
-//        try {
-//            Connect connector = new Connect();
-//            connection = connector.getConnection();
-//            System.out.println("Connected to the database");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+    private void connectToDatabase() {
+        try {
+            Connect connector = new Connect();
+            connection = connector.getConnection(); // Using getConnector() function
+            System.out.println("Connected to the database");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private void fetchData() {
         try {
-            //Connect connector = new Connect();
-            //Statement statement = connector.createStatement();
-            ResultSet resultSet = connector.getStatement().executeQuery("SELECT * FROM Donor");
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM Donor");
 
             // Populate the DefaultTableModel with data from the ResultSet
             DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
@@ -269,23 +313,62 @@ public class donor_management extends JFrame {
         }
     }
 
+    private boolean isCNICUnique(String cnic, int currentDonorID) {
+        try {
+            // Create the SQL query to check if the CNIC exists in the database
+            String query = "SELECT COUNT(*) FROM Donor WHERE Cnic_D = ? AND DonorID != ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, cnic);
+            statement.setInt(2, currentDonorID); // Exclude the current donor ID if editing
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                int count = resultSet.getInt(1);
+                return count == 0; // Return true if count is 0 (unique), false otherwise
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // In case of an error, return false
+    }
+
+    private boolean isDonorIDUnique(int donorID) {
+        try {
+            // Create the SQL query to check if the Donor ID exists in the database
+            String query = "SELECT COUNT(*) FROM Donor WHERE DonorID = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, donorID);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                int count = resultSet.getInt(1);
+                return count == 0; // Return true if count is 0 (unique), false otherwise
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // In case of an error, return false
+    }
+
     private void saveChanges() {
         DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
         int rowCount = model.getRowCount();
 
         try {
             // Start a transaction
-            connector.getConnection().setAutoCommit(false);
+            connection.setAutoCommit(false);
 
             for (int i = 0; i < rowCount; i++) {
+
                 int donorID;
                 // Check the flag column to determine if the row is new
                 boolean isNewRow = (Boolean) model.getValueAt(i, FLAG_COLUMN_INDEX);
 
                 if (isNewRow) {
+
                     // Insert new row logic here
                     String insertQuery = "INSERT INTO Donor (DonorID, Cnic_D, BloodGroup, RhFactor, Name, LastDonation, Contact, Address, Age) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    PreparedStatement insertStatement = connector.getConnection().prepareStatement(insertQuery,
+                    PreparedStatement insertStatement = connection.prepareStatement(insertQuery,
                             Statement.RETURN_GENERATED_KEYS);
                     insertStatement.setInt(1, Integer.parseInt((String) model.getValueAt(i, 0))); // Convert to Integer
                     insertStatement.setLong(2, Long.parseLong((String) model.getValueAt(i, 1)));
@@ -306,7 +389,7 @@ public class donor_management extends JFrame {
                     String rhFactor = (String) model.getValueAt(i, 3);
                     Date expiration = calculateExpirationDate();
                     String inventoryInsertQuery = "INSERT INTO BloodInventory (BloodGroup, RhFactor, Expiration, DonorID) VALUES (?, ?, ?, ?)";
-                    try (PreparedStatement inventoryInsertStatement = connector.getConnection()
+                    try (PreparedStatement inventoryInsertStatement = connection
                             .prepareStatement(inventoryInsertQuery)) {
                         inventoryInsertStatement.setString(1, bloodGroup);
                         inventoryInsertStatement.setString(2, rhFactor);
@@ -321,9 +404,12 @@ public class donor_management extends JFrame {
                     // Set the flag to false for existing rows
                     model.setValueAt(false, i, FLAG_COLUMN_INDEX);
                 } else {
+
                     // Update existing row logic here
                     donorID = (Integer) model.getValueAt(i, 0);
-                    long cnic = (Long) model.getValueAt(i, 1);
+                    long cnic = Long.parseLong(model.getValueAt(i, 1).toString());
+
+                    // long cnic = (Long) model.getValueAt(i, 1);
                     String bloodGroup = (String) model.getValueAt(i, 2);
                     String rhFactor = (String) model.getValueAt(i, 3);
                     String name = (String) model.getValueAt(i, 4);
@@ -334,7 +420,7 @@ public class donor_management extends JFrame {
 
                     // Update the corresponding record in the database
                     String updateQuery = "UPDATE Donor SET Cnic_D=?, BloodGroup=?, RhFactor=?, Name=?, LastDonation=?, Contact=?, Address=?, Age=? WHERE DonorID=?";
-                    PreparedStatement updateStatement = connector.getConnection().prepareStatement(updateQuery);
+                    PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
                     updateStatement.setLong(1, cnic);
                     updateStatement.setString(2, bloodGroup);
                     updateStatement.setString(3, rhFactor);
@@ -349,13 +435,14 @@ public class donor_management extends JFrame {
             }
 
             // Commit the transaction
-            connector.getConnection().commit();
+            connection.commit();
             System.out.println("Changes saved successfully.");
         } catch (SQLException e) {
             try {
                 // Rollback the transaction if an exception occurs
-                connector.getConnection().rollback();
+                connection.rollback();
                 System.err.println("Transaction rolled back.");
+
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
@@ -363,21 +450,10 @@ public class donor_management extends JFrame {
         } finally {
             try {
                 // Reset auto-commit mode
-                connector.getConnection().setAutoCommit(true);
+                connection.setAutoCommit(true);
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
-        }
-    }
-
-    private int getNextSampleID() throws SQLException {
-        //Statement statement = connection.createStatement();
-        ResultSet resultSet = connector.getStatement().executeQuery("SELECT MAX(SampleID) FROM BloodInventory");
-        if (resultSet.next()) {
-            int maxSampleID = resultSet.getInt(1);
-            return maxSampleID + 1;
-        } else {
-            return 1; // If no records exist, start with 1
         }
     }
 
@@ -439,13 +515,13 @@ public class donor_management extends JFrame {
             try {
                 // Delete from Donor table
                 String deleteDonorQuery = "DELETE FROM Donor WHERE DonorID = ?";
-                PreparedStatement deleteDonorStatement = connector.getConnection().prepareStatement(deleteDonorQuery);
+                PreparedStatement deleteDonorStatement = connection.prepareStatement(deleteDonorQuery);
                 deleteDonorStatement.setInt(1, donorID);
                 deleteDonorStatement.executeUpdate();
 
                 // Delete from BloodInventory table
                 String deleteBloodInventoryQuery = "DELETE FROM BloodInventory WHERE DonorID = ?";
-                PreparedStatement deleteBloodInventoryStatement = connector.getConnection()
+                PreparedStatement deleteBloodInventoryStatement = connection
                         .prepareStatement(deleteBloodInventoryQuery);
                 deleteBloodInventoryStatement.setInt(1, donorID);
                 deleteBloodInventoryStatement.executeUpdate();
