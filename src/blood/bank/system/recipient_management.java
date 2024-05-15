@@ -34,6 +34,8 @@ public class recipient_management extends JFrame {
     private JButton modeButton; // New button for mode switching
     private Connection connection;
     private boolean darkMode = false; // Track current mode
+    private JTextField bloodGroupField;
+    private JComboBox<String> rhFactorComboBox;
 
     Connect connector = new Connect();
 
@@ -47,7 +49,7 @@ public class recipient_management extends JFrame {
         setSize(800, 600);
 
         // Connect to the database
-        // connectToDatabase();
+        connectToDatabase();
 
         // Create the table
         recipientTable = new JTable();
@@ -78,14 +80,14 @@ public class recipient_management extends JFrame {
         recipientTable.getColumnModel().getColumn(FLAG_COLUMN_INDEX).setWidth(0);
         // Increase width of specific columns
         TableColumnModel columnModel = recipientTable.getColumnModel();
-        columnModel.getColumn(0).setPreferredWidth(60); // ID column
+        columnModel.getColumn(0).setPreferredWidth(70); // ID column
         columnModel.getColumn(1).setPreferredWidth(100); // Cnic_R column
-        columnModel.getColumn(5).setPreferredWidth(80); // BloodGroup column
-        columnModel.getColumn(6).setPreferredWidth(70); // RhFactor column
-        columnModel.getColumn(3).setPreferredWidth(100); // Name column
-        columnModel.getColumn(4).setPreferredWidth(105); // contact column
-        columnModel.getColumn(5).setPreferredWidth(105); // address column
-        columnModel.getColumn(6).setPreferredWidth(70); // PL column
+        columnModel.getColumn(2).setPreferredWidth(80); // BloodGroup column
+        columnModel.getColumn(3).setPreferredWidth(70); // RhFactor column
+        columnModel.getColumn(4).setPreferredWidth(100); // Name column
+        columnModel.getColumn(5).setPreferredWidth(100); // contact column
+        columnModel.getColumn(6).setPreferredWidth(105); // address column
+        columnModel.getColumn(7).setPreferredWidth(80); // PL column
 
         // Increase font size and height of table cells
         Font cellFont = new Font("DejaVu Sans", Font.PLAIN, 14); // Adjust the font size as needed
@@ -143,7 +145,7 @@ public class recipient_management extends JFrame {
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String searchText = searchField.getText().trim().toLowerCase();
-                int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 2 : 5; // Search by name or blood
+                int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 4 : 2; // Search by name or blood
                                                                                           // group
 
                 if (!searchText.isEmpty()) {
@@ -152,7 +154,7 @@ public class recipient_management extends JFrame {
                     recipientTable.setRowSorter(sorter);
 
                     RowFilter<DefaultTableModel, Object> filter;
-                    if (searchColumn == 5) {
+                    if (searchColumn == 2) {
                         // If searching by blood group, extract the blood group and Rh factor
                         String bloodGroup = searchText.substring(0, searchText.length() - 1).toUpperCase();
                         String rhFactor = searchText.substring(searchText.length() - 1).toUpperCase();
@@ -270,19 +272,84 @@ public class recipient_management extends JFrame {
         recipientTable.getTableHeader().setForeground(isDarkMode ? Color.WHITE : Color.BLACK);
     }
 
-    // private void connectToDatabase() {
-    // try {
-    // Connect connector = new Connect();
-    // connection = connector.getConnection();
-    // System.out.println("Connected to the database");
-    // } catch (Exception e) {
-    // e.printStackTrace();
-    // }
-    // }
+    private void connectToDatabase() {
+        try {
+            Connect connector = new Connect();
+            connection = connector.connection;
+            System.out.println("Connected to the database");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Implement custom cell renderer for the bin icon
+    class BinIconRenderer extends JLabel implements TableCellRenderer {
+        private final int iconSize; // Size of the icon
+
+        public BinIconRenderer(int iconSize) {
+            this.iconSize = iconSize;
+            setOpaque(true);
+            setHorizontalAlignment(CENTER);
+            // Load the bin icon and set its size
+            ImageIcon binIcon = new ImageIcon(getClass().getResource("/icon/bin.png"));
+            Image scaledBinIcon = binIcon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+            setIcon(new ImageIcon(scaledBinIcon));
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus,
+                int row, int column) {
+            return this;
+        }
+    }
+
+    // Implement custom cell editor for the bin icon
+    class BinIconEditor extends DefaultCellEditor {
+        public BinIconEditor(JCheckBox checkBox) {
+            super(checkBox);
+            checkBox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped(); // Stop cell editing when the checkbox is clicked
+                    // Handle deletion functionality here
+                    int selectedRow = recipientTable.getSelectedRow();
+                    if (selectedRow != -1) {
+                        // Get the donor ID from the selected row
+                        int recipientID = (int) recipientTable.getValueAt(selectedRow, 0);
+                        // Implement logic to delete the row and corresponding entries in the database
+                        deleteRecipient(recipientID);
+                    }
+                }
+            });
+        }
+
+        // Override// getTableCellEditorComponent to return the checkbox
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            return editorComponent;
+        }
+
+        // Method to delete donor and corresponding entries in the database
+        private void deleteRecipient(int recipientID) {
+            try {
+                // Delete from Donor table
+                String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
+                PreparedStatement deleteRecipientStatement = connection.prepareStatement(deleteRecipientQuery);
+                deleteRecipientStatement.setInt(1, recipientID);
+                deleteRecipientStatement.executeUpdate();
+
+                // Remove row from the table
+                DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
+                model.removeRow(recipientTable.getSelectedRow());
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                // Handle exception
+            }
+        }
+
+    }
 
     private void fetchData() {
         try {
-            // Statement statement = connection.createStatement();
             ResultSet resultSet = connector.getStatement().executeQuery("SELECT * FROM Recipient");
 
             // Populate the DefaultTableModel with data from the ResultSet
@@ -292,7 +359,7 @@ public class recipient_management extends JFrame {
                 row[0] = resultSet.getInt("RecipientID");
                 row[1] = resultSet.getLong("Cnic_R");
                 row[2] = resultSet.getString("BloodGroup");
-                row[3] = resultSet.getString("RhFactor");
+                row[3] = resultSet.getString("RhFactor"); // Include RhFactor
                 row[4] = resultSet.getString("Name");
                 row[5] = resultSet.getString("Contact");
                 row[6] = resultSet.getString("Address");
@@ -320,11 +387,11 @@ public class recipient_management extends JFrame {
 
                 // Ensure proper type conversion
                 long cnic = Long.parseLong(model.getValueAt(i, 1).toString());
-                String name = model.getValueAt(i, 2).toString();
-                String contact = model.getValueAt(i, 3).toString();
-                String address = model.getValueAt(i, 4).toString();
-                String bloodGroup = model.getValueAt(i, 5).toString();
-                String rhFactor = model.getValueAt(i, 6).toString();
+                String bloodGroup = model.getValueAt(i, 2).toString();
+                String rhFactor = model.getValueAt(i, 3).toString();
+                String name = model.getValueAt(i, 4).toString();
+                String contact = model.getValueAt(i, 5).toString();
+                String address = model.getValueAt(i, 6).toString();
                 int priorityLevel = Integer.parseInt(model.getValueAt(i, 7).toString());
 
                 // Validate priority level
@@ -341,11 +408,11 @@ public class recipient_management extends JFrame {
                             Statement.RETURN_GENERATED_KEYS);
 
                     insertStatement.setLong(1, cnic);
-                    insertStatement.setString(2, name);
-                    insertStatement.setString(3, contact);
-                    insertStatement.setString(4, address);
-                    insertStatement.setString(5, bloodGroup);
-                    insertStatement.setString(6, rhFactor);
+                    insertStatement.setString(2, bloodGroup);
+                    insertStatement.setString(3, rhFactor);
+                    insertStatement.setString(4, name);
+                    insertStatement.setString(5, contact);
+                    insertStatement.setString(6, address);
                     insertStatement.setInt(7, priorityLevel);
 
                     insertStatement.executeUpdate();
@@ -365,6 +432,7 @@ public class recipient_management extends JFrame {
                     // Update the corresponding record in the database
                     String updateQuery = "UPDATE Recipient SET Cnic_R=?, BloodGroup=?, RhFactor=?, Name=? , Contact=? , Address=? , PriorityLevel=? WHERE RecipientID=?";
                     PreparedStatement updateStatement = connector.getConnection().prepareStatement(updateQuery);
+
                     updateStatement.setLong(1, cnic);
                     updateStatement.setString(2, bloodGroup);
                     updateStatement.setString(3, rhFactor);
@@ -372,18 +440,20 @@ public class recipient_management extends JFrame {
                     updateStatement.setString(5, contact);
                     updateStatement.setString(6, address);
                     updateStatement.setInt(7, priorityLevel);
-                    // updateStatement.setInt(0, recipientID);
+                    updateStatement.setInt(8, recipientID);
                     updateStatement.executeUpdate();
                 }
             }
 
             // Commit the transaction
             connector.getConnection().commit();
+
             System.out.println("Changes saved successfully.");
         } catch (SQLException e) {
             try {
                 // Rollback the transaction if an exception occurs
                 connector.getConnection().rollback();
+
                 System.err.println("Transaction rolled back.");
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -401,6 +471,7 @@ public class recipient_management extends JFrame {
             try {
                 // Reset auto-commit mode
                 connector.getConnection().setAutoCommit(true);
+
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
