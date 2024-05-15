@@ -13,8 +13,6 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import CacheManager.Connect;
-import blood.bank.system.donor_management.BinIconEditor;
-import blood.bank.system.donor_management.BinIconRenderer;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -35,7 +33,7 @@ public class recipient_management extends JFrame {
     private Connection connection;
     private boolean darkMode = false; // Track current mode
 
-    // Add a flag column index
+   // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 8;
     private static final int BIN_COLUMN_INDEX = 9;
 
@@ -44,10 +42,10 @@ public class recipient_management extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
 
-        // Connect to the database
+       // Connect to the database
         connectToDatabase();
 
-        // Create the table
+       // Create the table
         recipientTable = new JTable();
         recipientTable.setModel(new DefaultTableModel(
                 new Object[][] {},
@@ -57,24 +55,24 @@ public class recipient_management extends JFrame {
                         recipientTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
                         recipientTable.setCellSelectionEnabled(true);
                         recipientTable.setCellSelectionEnabled(true);
-        // donorTable.setBackground(Color.decode("#FFCCCC")); // Light red color
-        // Add the bin icon column to the table model
+        recipientTable.setBackground(Color.decode("#FFCCCC")); // Light red color
+       // Add the bin icon column to the table model
         DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
         model.addColumn("Delete"); // Add column header
 
-        // Add the bin icon renderer and editor to the BIN_COLUMN_INDEX
+       // Add the bin icon renderer and editor to the BIN_COLUMN_INDEX
         int binIconSize = 15; // Adjust the size as needed
         recipientTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellRenderer(new BinIconRenderer(binIconSize));
         recipientTable.getColumnModel().getColumn(BIN_COLUMN_INDEX).setCellEditor(new BinIconEditor(new JCheckBox()));
         JTableHeader tableHeader = recipientTable.getTableHeader();
 
-        // Allow editing
+        //Allow editing
         recipientTable.setDefaultEditor(Object.class, new DefaultCellEditor(new JTextField()));
-        // Set column widths to zero to hide them
+        //Set column widths to zero to hide them
         recipientTable.getColumnModel().getColumn(FLAG_COLUMN_INDEX).setMinWidth(0);
         recipientTable.getColumnModel().getColumn(FLAG_COLUMN_INDEX).setMaxWidth(0);
         recipientTable.getColumnModel().getColumn(FLAG_COLUMN_INDEX).setWidth(0);
-        // Increase width of specific columns
+        //Increase width of specific columns
         TableColumnModel columnModel = recipientTable.getColumnModel();
         columnModel.getColumn(0).setPreferredWidth(60); // ID column
         columnModel.getColumn(1).setPreferredWidth(100); // Cnic_R column
@@ -85,26 +83,26 @@ public class recipient_management extends JFrame {
         columnModel.getColumn(5).setPreferredWidth(105); // address column
         columnModel.getColumn(6).setPreferredWidth(70); // PL column
 
-        // Increase font size and height of table cells
+        //Increase font size and height of table cells
         Font cellFont = new Font("DejaVu Sans", Font.PLAIN, 14); // Adjust the font size as needed
         recipientTable.setFont(cellFont);
 
-        // Increase row height
+        //Increase row height
         recipientTable.setRowHeight(25); // Adjust the row height as needed
-        // Set table border with curved edges and padding
+        //Set table border with curved edges and padding
 
-        // Initialize UI components
+        //Initialize UI components
         initializeComponents();
 
-        // Fetch data from the database and populate the table
+        //Fetch data from the database and populate the table
         fetchData();
 
-        // Display the frame
+       // Display the frame
         setVisible(true);
     }
 
     private void initializeComponents() {
-        // Create mode button
+       // Create mode button
         modeButton = new JButton("Switch Mode");
         modeButton.addActionListener(new ActionListener() {
             @Override
@@ -113,34 +111,34 @@ public class recipient_management extends JFrame {
             }
         });
 
-        // Create buttons and search field
+        //Create buttons and search field
         addButton = new JButton("Add");
         deleteButton = new JButton("Delete");
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
-        // Add a combobox for search options
+        //Add a combobox for search options
         String[] searchOptions = { "Search by Name", "Search by Blood Group" };
         JComboBox<String> searchOptionsComboBox = new JComboBox<>(searchOptions);
 
-        // Add action listeners
+        //Add action listeners
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Add an empty row to the table with flag set to true
+               // Add an empty row to the table with flag set to true
                 DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
-                model.addRow(new Object[] { null, null, null, null, null, null, null, null, true });
+                model.addRow(new Object[] { null, null, null, null, null, null, null, 0 , true });
             }
         });
 
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Implement deleting donor functionality
+               // Implement deleting donor functionality
             }
         });
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String searchText = searchField.getText().trim().toLowerCase();
                 int searchColumn = searchOptionsComboBox.getSelectedIndex() == 0 ? 2 : 5; // Search by name or blood
-                                                                                          // group
+                                                                                          //group
                 if (!searchText.isEmpty()) {
                     DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
                     TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
@@ -154,21 +152,21 @@ public class recipient_management extends JFrame {
                 }
             }
         });
-        // Add key listener for saving changes
+       // Add key listener for saving changes
         recipientTable.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if ((e.getKeyCode() == KeyEvent.VK_S) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
-                    // Handle Ctrl+S, save changes
+                   // Handle Ctrl+S, save changes
                     saveChanges();
                 }
             }
         });
 
-        // Add components to the frame
+       // Add components to the frame
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         buttonPanel.add(addButton);
-        // buttonPanel.add(deleteButton);
+        buttonPanel.add(deleteButton);
         buttonPanel.add(new JLabel("Search:"));
         buttonPanel.add(searchField);
         buttonPanel.add(searchButton);
@@ -176,17 +174,17 @@ public class recipient_management extends JFrame {
         buttonPanel.add(searchButton);
         buttonPanel.add(modeButton); // Add mode button
 
-        // Create rounded border
+       // Create rounded border
         Border roundedBorder = new LineBorder(Color.BLACK); // You can adjust the color as needed
         int borderRadius = 10; // Adjust the radius as needed
         Border emptyBorder = new EmptyBorder(borderRadius, borderRadius, borderRadius, borderRadius);
         Border compoundBorder = new CompoundBorder(roundedBorder, emptyBorder);
 
-        // Set rounded border to the table
+       // Set rounded border to the table
         recipientTable.setBorder(compoundBorder);
 
         buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of button
-                                                                                     // panel
+                                                                                     //panel
 
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -194,23 +192,22 @@ public class recipient_management extends JFrame {
         contentPanel.add(new JScrollPane(recipientTable), BorderLayout.CENTER);
         contentPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE);
         getContentPane().add(contentPanel);
-        // Set the background color of the main content pane to dark red
+        //Set the background color of the main content pane to dark red
         getContentPane().setBackground(darkMode ? Color.decode("#333333") : Color.WHITE);
 
-        // Set table and header color based on mode
+       // Set table and header color based on mode
         setTableColor(darkMode);
     }
 
     private void switchMode() {
         darkMode = !darkMode;
-        getContentPane().setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of
-                                                                                          // frame
+        getContentPane().setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of frame
         JPanel contentPanel = (JPanel) getContentPane().getComponent(0);
-        contentPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of content
-                                                                                      // panel
+        contentPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of content panel
+                                                                                     
         JPanel buttonPanel = (JPanel) contentPanel.getComponent(0);
-        buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of button
-                                                                                     // panel
+        buttonPanel.setBackground(darkMode ? Color.decode("#333333") : Color.WHITE); // Set background color of button  panel
+                                                                                    
         setTableColor(darkMode);
     }
 
@@ -232,7 +229,7 @@ public class recipient_management extends JFrame {
         }
     }
 
-     // Implement custom cell renderer for the bin icon
+     //Implement custom cell renderer for the bin icon
     class BinIconRenderer extends JLabel implements TableCellRenderer {
         private final int iconSize; // Size of the icon
 
@@ -240,7 +237,7 @@ public class recipient_management extends JFrame {
             this.iconSize = iconSize;
             setOpaque(true);
             setHorizontalAlignment(CENTER);
-            // Load the bin icon and set its size
+            //Load the bin icon and set its size
             ImageIcon binIcon = new ImageIcon(getClass().getResource("/icon/bin.png"));
             Image scaledBinIcon = binIcon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
             setIcon(new ImageIcon(scaledBinIcon));
@@ -252,45 +249,45 @@ public class recipient_management extends JFrame {
             return this;
         }
     }
-    // Implement custom cell editor for the bin icon
+    //Implement custom cell editor for the bin icon
     class BinIconEditor extends DefaultCellEditor {
         public BinIconEditor(JCheckBox checkBox) {
             super(checkBox);
             checkBox.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     fireEditingStopped(); // Stop cell editing when the checkbox is clicked
-                    // Handle deletion functionality here
+                   // Handle deletion functionality here
                     int selectedRow = recipientTable.getSelectedRow();
                     if (selectedRow != -1) {
-                        // Get the donor ID from the selected row
+                        //Get the donor ID from the selected row
                         int recipientID = (int) recipientTable.getValueAt(selectedRow, 0);
-                        // Implement logic to delete the row and corresponding entries in the database
+                       // Implement logic to delete the row and corresponding entries in the database
                         deleteRecipient(recipientID);
                     }
                 }
             });
         }
 
-        // Override getTableCellEditorComponent to return the checkbox
+       // Override// getTableCellEditorComponent to return the checkbox
         public Component getTableCellEditorComponent(JTable table, Object value,
                 boolean isSelected, int row, int column) {
             return editorComponent;
         }
 
-        // Method to delete donor and corresponding entries in the database
+       // Method to delete donor and corresponding entries in the database
         private void deleteRecipient(int donorID) {
             try {
-                // Delete from Donor table
+              //  Delete from Donor table
                 String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
                 PreparedStatement deleteRecipientStatement = connection.prepareStatement(deleteRecipientQuery);
                 deleteRecipientStatement.setInt(1, donorID);
                 deleteRecipientStatement.executeUpdate();
-                // Remove row from the table
+                //Remove row from the table
                 DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
                 model.removeRow(recipientTable.getSelectedRow());
             } catch (SQLException ex) {
                 ex.printStackTrace();
-                // Handle exception
+               // Handle exception
             }
         }
     }
@@ -301,7 +298,7 @@ public class recipient_management extends JFrame {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM Recipient");
 
-            // Populate the DefaultTableModel with data from the ResultSet
+           // Populate the DefaultTableModel with data from the ResultSet
             DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
             while (resultSet.next()) {
                 Object[] row = new Object[9]; // Adjusted for the added Flag column
@@ -320,53 +317,61 @@ public class recipient_management extends JFrame {
             e.printStackTrace();
         }
     }
-
     private void saveChanges() {
         DefaultTableModel model = (DefaultTableModel) recipientTable.getModel();
         int rowCount = model.getRowCount();
-
+    
         try {
             // Start a transaction
             connection.setAutoCommit(false);
-
+    
             for (int i = 0; i < rowCount; i++) {
                 int recipientID;
                 // Check the flag column to determine if the row is new
                 boolean isNewRow = (Boolean) model.getValueAt(i, FLAG_COLUMN_INDEX);
-
+    
+                // Ensure proper type conversion
+                long cnic = Long.parseLong(model.getValueAt(i, 1).toString());
+                String name = model.getValueAt(i, 2).toString();
+                String contact = model.getValueAt(i, 3).toString();
+                String address = model.getValueAt(i, 4).toString();
+                String bloodGroup = model.getValueAt(i, 5).toString();
+                String rhFactor = model.getValueAt(i, 6).toString();
+                int priorityLevel = Integer.parseInt(model.getValueAt(i, 7).toString());
+    
+                // Validate priority level
+                if (priorityLevel < 1 || priorityLevel > 5) {
+                    JOptionPane.showMessageDialog(this, "Priority Level must be between 1 and 5.", "Invalid Priority Level", JOptionPane.ERROR_MESSAGE);
+                    return; // Exit the method if the priority level is invalid
+                }
+    
                 if (isNewRow) {
                     // Insert new row logic here
                     String insertQuery = "INSERT INTO Recipient (Cnic_R, Name, Contact, Address, BloodGroup, RhFactor, PriorityLevel) VALUES (?, ?, ?, ?, ?, ?, ?)";
-                    PreparedStatement insertStatement = connection.prepareStatement(insertQuery,
-                            Statement.RETURN_GENERATED_KEYS);
-                    insertStatement.setLong(1, Long.parseLong((String) model.getValueAt(i, 1)));
-                    insertStatement.setString(2, (String) model.getValueAt(i, 2)); // Name
-                    insertStatement.setString(3, (String) model.getValueAt(i, 3)); // Contact
-                    insertStatement.setString(4, (String) model.getValueAt(i, 4)); // Address
-                    insertStatement.setString(5, (String) model.getValueAt(i, 5)); // BloodGroup
-                    insertStatement.setString(6, (String) model.getValueAt(i, 6)); // RhFactor
-                    insertStatement.setInt(7, Integer.parseInt((String) model.getValueAt(i, 7))); // PriorityLevel
+                    PreparedStatement insertStatement = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);
+                    
+                    insertStatement.setLong(1, cnic);
+                    insertStatement.setString(2, name);
+                    insertStatement.setString(3, contact);
+                    insertStatement.setString(4, address);
+                    insertStatement.setString(5, bloodGroup);
+                    insertStatement.setString(6, rhFactor);
+                    insertStatement.setInt(7, priorityLevel);
+                    
                     insertStatement.executeUpdate();
-
+    
                     ResultSet generatedKeys = insertStatement.getGeneratedKeys();
                     if (generatedKeys.next()) {
                         recipientID = generatedKeys.getInt(1);
                         model.setValueAt(recipientID, i, 0); // Update the RecipientID in the table model
                     }
-
+    
                     // Set the flag to false for existing rows
                     model.setValueAt(false, i, FLAG_COLUMN_INDEX);
                 } else {
                     // Update existing row logic here
                     recipientID = (Integer) model.getValueAt(i, 0);
-                    long cnic = Long.parseLong((String) model.getValueAt(i, 1));
-                    String name = (String) model.getValueAt(i, 2);
-                    String contact = (String) model.getValueAt(i, 3);
-                    String address = (String) model.getValueAt(i, 4);
-                    String bloodGroup = (String) model.getValueAt(i, 5);
-                    String rhFactor = (String) model.getValueAt(i, 6);
-                    int priorityLevel = Integer.parseInt((String) model.getValueAt(i, 7)); // Convert String to Integer
-
+    
                     // Update the corresponding record in the database
                     String updateQuery = "UPDATE Recipient SET Cnic_R=?, Name=?, Contact=?, Address=?, BloodGroup=?, RhFactor=?, PriorityLevel=? WHERE RecipientID=?";
                     PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
@@ -381,7 +386,7 @@ public class recipient_management extends JFrame {
                     updateStatement.executeUpdate();
                 }
             }
-
+    
             // Commit the transaction
             connection.commit();
             System.out.println("Changes saved successfully.");
@@ -393,7 +398,13 @@ public class recipient_management extends JFrame {
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
-            e.printStackTrace();
+    
+            // Check for SQL state for duplicate entry
+            if (e.getSQLState().equals("23000")) { // SQL state code for duplicate entry
+                JOptionPane.showMessageDialog(this, "Duplicate RecipientID or CNIC detected. Please ensure all entries are unique.", "Duplicate Entry Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                e.printStackTrace();
+            }
         } finally {
             try {
                 // Reset auto-commit mode
@@ -403,7 +414,6 @@ public class recipient_management extends JFrame {
             }
         }
     }
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(recipient_management::new);
     }
