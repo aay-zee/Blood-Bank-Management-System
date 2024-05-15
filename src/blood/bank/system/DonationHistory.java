@@ -1,5 +1,7 @@
 package blood.bank.system;
 
+import CacheManager.Connect;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -20,11 +22,11 @@ public class DonationHistory extends JFrame {
     public DonationHistory(String var) {
         super(var);
 
-        // Create spacer panel and set preferred size to add space at the top
-        spacerPanel = new JPanel();
-        spacerPanel.setPreferredSize(new Dimension(800, 100)); // Adjust height as needed
-        spacerPanel.setBackground(Color.WHITE);
-        spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
+//        // Create spacer panel and set preferred size to add space at the top
+//        spacerPanel = new JPanel();
+//        spacerPanel.setPreferredSize(new Dimension(800, 100)); // Adjust height as needed
+//        spacerPanel.setBackground(Color.WHITE);
+//        spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
 
         if(Objects.equals(var, "donors")){
             titleLabel = new JLabel("Donors Data");
@@ -46,11 +48,11 @@ public class DonationHistory extends JFrame {
             matchPane = new JScrollPane(matchTable);
             add(matchPane);
         }
-        titleLabel.setFont(new Font("Raleway",Font.BOLD,25));
-        spacerPanel.add(titleLabel);
+//        titleLabel.setFont(new Font("Raleway",Font.BOLD,25));
+//        spacerPanel.add(titleLabel);
 
-        // Add spacer panel at the top
-        add(spacerPanel, BorderLayout.NORTH);
+//        // Add spacer panel at the top
+//        add(spacerPanel, BorderLayout.NORTH);
 
         // Set layout
         setLayout(new GridLayout(1, 1));
@@ -74,27 +76,27 @@ public class DonationHistory extends JFrame {
 
             if(Objects.equals(str, "donors")) {
                 //Donors Data
-                PreparedStatement donorsStatement = connect.connection.prepareStatement("SELECT Name,BloodGroup FROM Donor");
+                PreparedStatement donorsStatement = connect.getConnection().prepareStatement("SELECT * FROM Donor");
                 ResultSet donorsResult = donorsStatement.executeQuery();
                 donorsTable.setModel(buildTableModel(donorsResult));
             }
 
             else if(Objects.equals(str, "recipients")) {
                 // Fetch data for Recipients
-                PreparedStatement recipientsStatement = connect.connection.prepareStatement("SELECT Name,BloodGroup FROM Recipient");
+                PreparedStatement recipientsStatement = connect.getConnection().prepareStatement("SELECT * FROM Recipient");
                 ResultSet recipientsResult = recipientsStatement.executeQuery();
                 recipientsTable.setModel(buildTableModel(recipientsResult));
             }
 
             else {
                 // Fetch data for CrossMatches
-                PreparedStatement matchStatement = connect.connection.prepareStatement("SELECT DonorID,RecipientID,BloodGroup FROM CrossMatch");
+                PreparedStatement matchStatement = connect.getConnection().prepareStatement("SELECT * FROM CrossMatch");
                 ResultSet matchResult = matchStatement.executeQuery();
                 matchTable.setModel(buildTableModel(matchResult));
             }
 
             // Close connection
-            connect.connection.close();
+            connect.getConnection().close();
         }catch(Exception e){
             e.printStackTrace();
         }

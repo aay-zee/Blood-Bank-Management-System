@@ -11,7 +11,7 @@ public class Connect {
 
     public Connect() {
         try {            //change password acc to your db
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root", "abc_123");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/BloodBankSystem", "root", "l227881");
             statement = connection.createStatement();
         } catch (SQLException e) {
             e.printStackTrace();

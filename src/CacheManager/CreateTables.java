@@ -32,14 +32,14 @@ public class CreateTables {
             // Creating Donor table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Donor (" +
                     "DonorID INT PRIMARY KEY, " +
-                    "Cnic_D BIGINT PRIMARY KEY NOT NULL, " +
+                    "Cnic_D BIGINT NOT NULL, " +
                     "BloodGroup VARCHAR(2), " +
-                    "RhFactor VARCHAR(10), " +
+                    "RhFactor VARCHAR(1), " +
                     "Name VARCHAR(30), " +
                     "LastDonation DATE, " +
                     "Contact VARCHAR(20), " +
                     "Address VARCHAR(60), " +
-                    "Age INT)");
+                    "Age INT(3), " + "UNIQUE(Cnic_D))");
 
             // Creating BloodInventory table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS BloodInventory (" +
@@ -63,15 +63,14 @@ public class CreateTables {
 
             // Creating Recipient table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Recipient (" +
-                    "RecipientID INT PRIMARY KEY, " +
-                    "Cnic_R VARCHAR(13) , " +
                     "RecipientID INT AUTO_INCREMENT PRIMARY KEY, " +
                     "Name VARCHAR(30), " +
                     "Cnic_R BIGINT(13) NOT NULL, " +
-                    "BloodGroup VARCHAR(5), " +
+                    "BloodGroup VARCHAR(2), " +
+                    "RhFactor VARCHAR(1), " +
                     "Contact VARCHAR(20), " +
                     "Address VARCHAR(60), " +
-                    "PriorityLevel INT(1), " +
+                    "PriorityLevel INT(5), " +
                     "UNIQUE (Cnic_R))");
 
             // Creating CrossMatch table
