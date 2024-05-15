@@ -33,17 +33,17 @@ public class donor_management extends JFrame {
     private Connection connection;
     private boolean darkMode = false; // Track current mode
 
+    Connect connector = new Connect();
+
     // Add a flag column index
     private static final int FLAG_COLUMN_INDEX = 9;
     private static final int BIN_COLUMN_INDEX = 10;
 
     public donor_management() {
         setTitle("Donor Management");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
 
         // Connect to the database
-        connectToDatabase();
+        //connectToDatabase();
 
         // Create the table
         donorTable = new JTable();
@@ -108,6 +108,8 @@ public class donor_management extends JFrame {
         fetchData();
 
         // Display the frame
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(800, 600);
         setVisible(true);
     }
 
@@ -230,20 +232,21 @@ public class donor_management extends JFrame {
         donorTable.getTableHeader().setForeground(isDarkMode ? Color.WHITE : Color.BLACK);
     }
 
-    private void connectToDatabase() {
-        try {
-            Connect connector = new Connect();
-            connection = connector.connection;
-            System.out.println("Connected to the database");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    private void connectToDatabase() {
+//        try {
+//            Connect connector = new Connect();
+//            connection = connector.getConnection();
+//            System.out.println("Connected to the database");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     private void fetchData() {
         try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM Donor");
+            //Connect connector = new Connect();
+            //Statement statement = connector.createStatement();
+            ResultSet resultSet = connector.getStatement().executeQuery("SELECT * FROM Donor");
 
             // Populate the DefaultTableModel with data from the ResultSet
             DefaultTableModel model = (DefaultTableModel) donorTable.getModel();
@@ -272,7 +275,7 @@ public class donor_management extends JFrame {
 
         try {
             // Start a transaction
-            connection.setAutoCommit(false);
+            connector.getConnection().setAutoCommit(false);
 
             for (int i = 0; i < rowCount; i++) {
                 int donorID;
@@ -282,7 +285,7 @@ public class donor_management extends JFrame {
                 if (isNewRow) {
                     // Insert new row logic here
                     String insertQuery = "INSERT INTO Donor (DonorID, Cnic_D, BloodGroup, RhFactor, Name, LastDonation, Contact, Address, Age) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    PreparedStatement insertStatement = connection.prepareStatement(insertQuery,
+                    PreparedStatement insertStatement = connector.getConnection().prepareStatement(insertQuery,
                             Statement.RETURN_GENERATED_KEYS);
                     insertStatement.setInt(1, Integer.parseInt((String) model.getValueAt(i, 0))); // Convert to Integer
                     insertStatement.setLong(2, Long.parseLong((String) model.getValueAt(i, 1)));
@@ -303,7 +306,7 @@ public class donor_management extends JFrame {
                     String rhFactor = (String) model.getValueAt(i, 3);
                     Date expiration = calculateExpirationDate();
                     String inventoryInsertQuery = "INSERT INTO BloodInventory (BloodGroup, RhFactor, Expiration, DonorID) VALUES (?, ?, ?, ?)";
-                    try (PreparedStatement inventoryInsertStatement = connection
+                    try (PreparedStatement inventoryInsertStatement = connector.getConnection()
                             .prepareStatement(inventoryInsertQuery)) {
                         inventoryInsertStatement.setString(1, bloodGroup);
                         inventoryInsertStatement.setString(2, rhFactor);
@@ -331,7 +334,7 @@ public class donor_management extends JFrame {
 
                     // Update the corresponding record in the database
                     String updateQuery = "UPDATE Donor SET Cnic_D=?, BloodGroup=?, RhFactor=?, Name=?, LastDonation=?, Contact=?, Address=?, Age=? WHERE DonorID=?";
-                    PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
+                    PreparedStatement updateStatement = connector.getConnection().prepareStatement(updateQuery);
                     updateStatement.setLong(1, cnic);
                     updateStatement.setString(2, bloodGroup);
                     updateStatement.setString(3, rhFactor);
@@ -346,12 +349,12 @@ public class donor_management extends JFrame {
             }
 
             // Commit the transaction
-            connection.commit();
+            connector.getConnection().commit();
             System.out.println("Changes saved successfully.");
         } catch (SQLException e) {
             try {
                 // Rollback the transaction if an exception occurs
-                connection.rollback();
+                connector.getConnection().rollback();
                 System.err.println("Transaction rolled back.");
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -360,7 +363,7 @@ public class donor_management extends JFrame {
         } finally {
             try {
                 // Reset auto-commit mode
-                connection.setAutoCommit(true);
+                connector.getConnection().setAutoCommit(true);
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
@@ -368,8 +371,8 @@ public class donor_management extends JFrame {
     }
 
     private int getNextSampleID() throws SQLException {
-        Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("SELECT MAX(SampleID) FROM BloodInventory");
+        //Statement statement = connection.createStatement();
+        ResultSet resultSet = connector.getStatement().executeQuery("SELECT MAX(SampleID) FROM BloodInventory");
         if (resultSet.next()) {
             int maxSampleID = resultSet.getInt(1);
             return maxSampleID + 1;
@@ -436,13 +439,13 @@ public class donor_management extends JFrame {
             try {
                 // Delete from Donor table
                 String deleteDonorQuery = "DELETE FROM Donor WHERE DonorID = ?";
-                PreparedStatement deleteDonorStatement = connection.prepareStatement(deleteDonorQuery);
+                PreparedStatement deleteDonorStatement = connector.getConnection().prepareStatement(deleteDonorQuery);
                 deleteDonorStatement.setInt(1, donorID);
                 deleteDonorStatement.executeUpdate();
 
                 // Delete from BloodInventory table
                 String deleteBloodInventoryQuery = "DELETE FROM BloodInventory WHERE DonorID = ?";
-                PreparedStatement deleteBloodInventoryStatement = connection
+                PreparedStatement deleteBloodInventoryStatement = connector.getConnection()
                         .prepareStatement(deleteBloodInventoryQuery);
                 deleteBloodInventoryStatement.setInt(1, donorID);
                 deleteBloodInventoryStatement.executeUpdate();

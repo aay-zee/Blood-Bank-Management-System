@@ -175,8 +175,8 @@ public class SignUp extends JFrame implements ActionListener {
                         JOptionPane.showMessageDialog(null, "Fill in all the Details.");
                     }   else  {
                         Connect connect2 = new Connect();
-                        String query = "INSERT INTO SignUp VALUES('" + facilityID + "','" + username + "','" + email + "','" + password + "','" + contact + "','" + address + "')";
-                        connect2.statement.executeUpdate(query);
+                        String query = "INSERT INTO Admin VALUES('" + facilityID + "','" + username + "','" + email + "','" + password + "','" + contact + "','" + address + "')";
+                        connect2.getStatement().executeUpdate(query);
                         setVisible(false);
                         new Login();
                     }
