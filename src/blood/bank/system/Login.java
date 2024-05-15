@@ -150,8 +150,8 @@ public class Login extends JFrame implements ActionListener {
     public boolean isUser(String username,String password){
         try{
             Connect connect1=new Connect();
-            String query = "SELECT * FROM SignUp WHERE Name = ? AND Password = ? ";
-                try (PreparedStatement preparedStatement = connect1.connection.prepareStatement(query)) {
+            String query = "SELECT * FROM Admin WHERE Name = ? AND Password = ? ";
+                try (PreparedStatement preparedStatement = connect1.getConnection().prepareStatement(query)) {
                     preparedStatement.setString(1, username);
                     preparedStatement.setString(2, password);
                     try (ResultSet resultSet = preparedStatement.executeQuery()) {
