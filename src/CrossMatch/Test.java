@@ -1,10 +1,5 @@
 package CrossMatch;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -80,13 +75,15 @@ spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
 add(spacerPanel, BorderLayout.NORTH);
 
 // Adding image
- try {
-            // Load image
-            String imagePath = "C:\\Users\\AR Computers\\Desktop\\Blood-Bank-Management-System\\src\\images\\img2.jpeg";
-            File imageFile = new File(imagePath);
-            if (imageFile.exists()) {
-                ImageIcon imageIcon = new ImageIcon(imagePath);
-                JLabel imageLabel = new JLabel(imageIcon);
+        try {
+//            // Load image
+//            String imagePath = "C:\\Users\\AR Computers\\Desktop\\Blood-Bank-Management-System\\src\\images\\img2.jpeg";
+//            File imageFile = new File(imagePath);
+            //if (imageFile.exists()) {
+                ImageIcon imageIcon = new ImageIcon(ClassLoader.getSystemResource("icon/img2.jpeg"));
+                Image i1=imageIcon.getImage().getScaledInstance(850,450,Image.SCALE_SMOOTH);
+                ImageIcon i2=new ImageIcon(i1);
+                JLabel imageLabel = new JLabel(i2);
                 imageLabel.setVerticalAlignment(JLabel.BOTTOM);
                 imageLabel.setHorizontalAlignment(JLabel.CENTER);
 
@@ -95,19 +92,24 @@ add(spacerPanel, BorderLayout.NORTH);
                 spacerPanel.setPreferredSize(new Dimension(800, 50)); // Adjust height as needed
                 spacerPanel.setBackground(Color.WHITE);
                 spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
-                 
+
                 // getContentPane().add(spacerPanel, BorderLayout.NORTH);
                 // getContentPane().add(imageLabel, BorderLayout.NORTH);
 
                 spacerPanel.add(imageLabel);
                 add(spacerPanel);
 
-            } else {
-                System.err.println("Image file not found.");
-            }
+
+//            } else {
+//                System.err.println("Image file not found.");
+//            }
         } catch (Exception e) {
             System.err.println("Error loading image: " + e.getMessage());
         }
+    }
+
+    public static void main(String[] args) {
+        new Test();
     }
 
     private void searchDonors() {
@@ -186,7 +188,7 @@ add(spacerPanel, BorderLayout.NORTH);
 
     private void filterDonorsByExpiration() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        model.setRowCount(0); 
+        model.setRowCount(0);
 
         int recipientId = Integer.parseInt(txtSearch.getText());
 
@@ -290,7 +292,7 @@ add(spacerPanel, BorderLayout.NORTH);
 
         jButton2.setText("Change Mode");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) 
+            public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 jButton2ActionPerformed(evt);
             }
@@ -298,8 +300,8 @@ add(spacerPanel, BorderLayout.NORTH);
 
         headerPanel.setBackground(Color.BLACK);
 
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 28)); 
-        headerLabel.setForeground(Color.WHITE); 
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        headerLabel.setForeground(Color.WHITE);
         headerLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         headerLabel.setText(" Cross Match");
 
@@ -470,7 +472,7 @@ add(spacerPanel, BorderLayout.NORTH);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Test.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-       
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
