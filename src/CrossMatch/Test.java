@@ -20,6 +20,7 @@ import javax.swing.plaf.ColorUIResource;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import blood.bank.system.Home;
 
 public class Test extends javax.swing.JFrame {
 
@@ -108,9 +109,10 @@ add(spacerPanel, BorderLayout.NORTH);
         }
     }
 
-    public static void main(String[] args) {
-        new Test();
-    }
+    // public static void main(String[] args) 
+    // {
+    //     new Test();
+    // }
 
     private void searchDonors() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -139,7 +141,8 @@ add(spacerPanel, BorderLayout.NORTH);
                             donorStmt.setString(1, recipientBloodGroup);
                             donorStmt.setString(2, recipientRhFactor);
                             try (ResultSet donorRs = donorStmt.executeQuery()) {
-                                while (donorRs.next()) {
+                                while (donorRs.next())
+                                 {
                                     model.addRow(new Object[]{donorRs.getInt("DonorID"), donorRs.getDate("Expiration"),
                                             donorRs.getInt("Age"), donorRs.getString("BloodGroup"), donorRs.getString("RhFactor")});
                                 }
@@ -297,6 +300,16 @@ add(spacerPanel, BorderLayout.NORTH);
                 jButton2ActionPerformed(evt);
             }
         });
+        //home button:
+        cmdDelete.setText(" Home ");
+cmdDelete.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent evt) {
+        // Code to navigate to the home screen
+        dispose(); // Close the current frame
+        new blood.bank.system.Home().setVisible(true); // Open the Home screen
+    }
+});
+crazyPanel2.add(cmdDelete);
 
         headerPanel.setBackground(Color.BLACK);
 
@@ -344,7 +357,7 @@ add(spacerPanel, BorderLayout.NORTH);
         ));
         crazyPanel2.setMigLayoutConstraints(new raven.crazypanel.MigLayoutConstraints(
             "",
-            "[grow][fill][][]", // Adjusted constraints to allocate more space to the search bar and less space to the buttons
+            "[grow][fill][][]", 
             "",
             new String[]{
                 "width 200"
@@ -442,25 +455,26 @@ add(spacerPanel, BorderLayout.NORTH);
 
         pack();
         setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+    }
 
     private void cmdSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdSearchActionPerformed
         searchDonors();
-    }//GEN-LAST:event_cmdSearchActionPerformed
+    }
 
     private void cmdMatchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdMatchActionPerformed
         matchDonorRecipient();
-    }//GEN-LAST:event_cmdMatchActionPerformed
+    }
 
     private void cmdFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdFilterActionPerformed
         filterDonorsByExpiration();
-    }//GEN-LAST:event_cmdFilterActionPerformed
+    }
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // Change Mode button action
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }
 
     public static void main(String args[]) {
+          new Test();
         /* Set the Nimbus look and feel */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
