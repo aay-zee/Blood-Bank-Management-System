@@ -190,9 +190,18 @@ public class donor_management extends JFrame {
                                     JOptionPane.INFORMATION_MESSAGE);
                         }
                     } else {
-                        // If searching by name, match exact name
-                        String searchString = "(?i)^" + Pattern.quote(searchText) + "$"; // Match exact name
-                        filter = RowFilter.regexFilter(searchString, searchColumn);
+                        // If searching by name, match exact name or first name
+                        String searchString = "(?i)" + Pattern.quote(searchText); // Match any part of the name
+                        filter = new RowFilter<DefaultTableModel, Object>() {
+                            public boolean include(Entry<? extends DefaultTableModel, ? extends Object> entry) {
+                                // Check if either the full name or just the first name matches
+                                String fullName = entry.getStringValue(4).toLowerCase(); // Assuming full name is in
+                                                                                         // column 4
+                                String firstName = fullName.split("\\s+")[0]; // Extracting the first name
+
+                                return fullName.contains(searchText) || firstName.contains(searchText);
+                            }
+                        };
                         sorter.setRowFilter(filter);
 
                         if (sorter.getViewRowCount() == 0) {
