@@ -23,11 +23,13 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Calendar;
+
 
 public class recipient_management extends JFrame {
+
     private JTable recipientTable;
     private JButton addButton;
+    private JButton backButton;
     private JButton sortButton;
     private JTextField searchField;
     private JButton searchButton;
@@ -46,7 +48,7 @@ public class recipient_management extends JFrame {
     public recipient_management() {
         setTitle("Recipient Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 600);
+        setSize(950, 600);
 
         // Connect to the database
         connectToDatabase();
@@ -122,6 +124,7 @@ public class recipient_management extends JFrame {
         searchField = new JTextField(20);
         searchButton = new JButton("Search");
         sortButton = new JButton("Sort by Priority");
+        backButton = new JButton("Home");
         sortButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 sortTableByPriority();
@@ -135,6 +138,13 @@ public class recipient_management extends JFrame {
         rhFactorComboBox = new JComboBox<>(new String[] { "+", "-" });
 
         // Add action listeners
+        backButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                // Code to navigate to the home screen
+                dispose(); // Close the current frame
+                new blood.bank.system.Home().setVisible(true); // Open the Home screen
+            }
+        });
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Add an empty row to the table with flag set to true
@@ -218,9 +228,11 @@ public class recipient_management extends JFrame {
                 }
             }
         });
+        
 
         // Add components to the frame
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        buttonPanel.add(backButton);
         buttonPanel.add(addButton);
         buttonPanel.add(new JLabel("Search:"));
         buttonPanel.add(searchField);
