@@ -31,8 +31,8 @@ public class Test extends javax.swing.JFrame {
     public Test() {
         initComponents();
         applyTableStyle(jTable1);
-        Font font = new Font("Arial", Font.PLAIN, 30);
-        Font headerFont = new Font("Arial", Font.BOLD, 30);
+        Font font = new Font("Arial", Font.PLAIN, 18);
+        Font headerFont = new Font("Arial", Font.BOLD, 18);
         txtSearch.setFont(font);
         txtSearch.setForeground(Color.BLACK);
         cmdSearch.setFont(font);
@@ -91,8 +91,8 @@ public class Test extends javax.swing.JFrame {
             spacerPanel.setBackground(Color.WHITE);
             spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
 
+            add(imageLabel);
             spacerPanel.add(imageLabel);
-            add(spacerPanel);
 
         } catch (Exception e) {
             System.err.println("Error loading image: " + e.getMessage());
@@ -171,6 +171,15 @@ public class Test extends javax.swing.JFrame {
                 insertStmt.setString(4, rhFactor);
                 insertStmt.executeUpdate();
             }
+            // Insert into donationhistory table
+            String insertDonationHistoryQuery = "INSERT INTO donationhistory (DonorID, RecipientID, BloodGroup, RhFactor) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement insertDonationHistoryStmt = conn.prepareStatement(insertDonationHistoryQuery)) {
+                insertDonationHistoryStmt.setInt(1, donorId);
+                insertDonationHistoryStmt.setInt(2, recipientId);
+                insertDonationHistoryStmt.setString(3, bloodGroup);
+                insertDonationHistoryStmt.setString(4, rhFactor);
+                insertDonationHistoryStmt.executeUpdate();
+            }
             // String deleteRecipientQuery = "DELETE FROM Recipient WHERE RecipientID = ?";
             // try (PreparedStatement deleteStmt =
             // conn.prepareStatement(deleteRecipientQuery)) {
@@ -242,6 +251,9 @@ public class Test extends javax.swing.JFrame {
         table.getTableHeader()
                 .setDefaultRenderer(getAlignmentCellRender(table.getTableHeader().getDefaultRenderer(), true));
         table.setDefaultRenderer(Object.class, getAlignmentCellRender(table.getDefaultRenderer(Object.class), false));
+
+        Font cellFont = new Font("Arial", Font.PLAIN, 17); // Adjust the font size as needed
+        table.setFont(cellFont);
     }
 
     private TableCellRenderer getAlignmentCellRender(TableCellRenderer oldRender, boolean header) {

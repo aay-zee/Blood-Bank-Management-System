@@ -3,62 +3,90 @@ package blood.bank.system;
 import CacheManager.Connect;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Objects;
 
-public class DonationHistory extends JFrame {
-    private JTable donorsTable,recipientsTable,matchTable;
-    private JScrollPane donorsPane,recipientsPane,matchPane;
+public class DonationHistory extends JFrame implements ActionListener {
+    private JTable donorsTable, recipientsTable, matchTable, inventoryTable;
+    private JScrollPane donorsPane, recipientsPane, matchPane, inventoryPane;
     private JPanel spacerPanel;
     private JLabel titleLabel;
-
+    private JButton backButton;
 
     public DonationHistory(String var) {
         super(var);
 
-//        // Create spacer panel and set preferred size to add space at the top
-//        spacerPanel = new JPanel();
-//        spacerPanel.setPreferredSize(new Dimension(800, 100)); // Adjust height as needed
-//        spacerPanel.setBackground(Color.WHITE);
-//        spacerPanel.setLayout(new FlowLayout()); // Set layout for spacer panel
+        // Create a spacer panel with specific height to add white space at the top
+        spacerPanel = new JPanel();
+        spacerPanel.setPreferredSize(new Dimension(800, 30)); // Adjust height as needed
+        spacerPanel.setBackground(Color.WHITE);
 
-        if(Objects.equals(var, "donors")){
+        // Create back button
+        backButton = new JButton("Home");
+        backButton.addActionListener(this);
+
+        // Set layout and add components
+        setLayout(new BorderLayout());
+
+        // Add spacer panel at the top
+        add(spacerPanel, BorderLayout.NORTH);
+
+        // JPanel contentPanel = new JPanel(new BorderLayout());
+
+        // contentPanel.add(backButton, BorderLayout.NORTH); // Add back button at the
+        // bottom
+
+        spacerPanel.add(backButton);
+
+        if (Objects.equals(var, "donors")) {
             titleLabel = new JLabel("Donors Data");
             donorsTable = new JTable();
             donorsPane = new JScrollPane(donorsTable);
             add(donorsPane);
         }
 
-        else if(Objects.equals(var, "recipients")){
+        else if (Objects.equals(var, "recipients")) {
             titleLabel = new JLabel("Recipients Data");
             recipientsTable = new JTable();
             recipientsPane = new JScrollPane(recipientsTable);
             add(recipientsPane);
         }
 
-        else{
+        else if (Objects.equals(var, "matches")) {
             titleLabel = new JLabel("Match Data");
             matchTable = new JTable();
             matchPane = new JScrollPane(matchTable);
             add(matchPane);
         }
-//        titleLabel.setFont(new Font("Raleway",Font.BOLD,25));
-//        spacerPanel.add(titleLabel);
 
-//        // Add spacer panel at the top
-//        add(spacerPanel, BorderLayout.NORTH);
+        else {
+            titleLabel = new JLabel("Inventory Data");
+            inventoryTable = new JTable();
+            inventoryPane = new JScrollPane(inventoryTable);
+            add(inventoryPane);
+        }
+
+        // // Set layout and add back button
+        // setLayout(new BorderLayout());
+        // add(backButton, BorderLayout.SOUTH); // Add back button at the bottom
+
+        // titleLabel.setFont(new Font("Raleway",Font.BOLD,25));
+        // spacerPanel.add(titleLabel);
+
+        // // Add spacer panel at the top
+        // add(spacerPanel, BorderLayout.NORTH);
 
         // Set layout
-        setLayout(new GridLayout(1, 1));
-
-
-
+        // setLayout(new GridLayout(1, 1));
 
         // Set frame properties
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -70,34 +98,55 @@ public class DonationHistory extends JFrame {
         fetchDataAndPopulateTables(var);
     }
 
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            if (Objects.equals(e.getActionCommand(), "Home")) {
+                setVisible(false);
+                new Home();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     private void fetchDataAndPopulateTables(String str) {
-        try{
+        try {
             Connect connect = new Connect();
 
-            if(Objects.equals(str, "donors")) {
-                //Donors Data
+            if (Objects.equals(str, "donors")) {
+                // Donors Data
                 PreparedStatement donorsStatement = connect.getConnection().prepareStatement("SELECT * FROM Donor");
                 ResultSet donorsResult = donorsStatement.executeQuery();
                 donorsTable.setModel(buildTableModel(donorsResult));
             }
 
-            else if(Objects.equals(str, "recipients")) {
+            else if (Objects.equals(str, "recipients")) {
                 // Fetch data for Recipients
-                PreparedStatement recipientsStatement = connect.getConnection().prepareStatement("SELECT * FROM Recipient");
+                PreparedStatement recipientsStatement = connect.getConnection()
+                        .prepareStatement("SELECT * FROM Recipient");
                 ResultSet recipientsResult = recipientsStatement.executeQuery();
                 recipientsTable.setModel(buildTableModel(recipientsResult));
             }
 
-            else {
+            else if (Objects.equals(str, "matches")) {
                 // Fetch data for CrossMatches
-                PreparedStatement matchStatement = connect.getConnection().prepareStatement("SELECT * FROM CrossMatch");
+                PreparedStatement matchStatement = connect.getConnection()
+                        .prepareStatement("SELECT * FROM donationhistory");
                 ResultSet matchResult = matchStatement.executeQuery();
                 matchTable.setModel(buildTableModel(matchResult));
             }
 
+            else {
+                PreparedStatement inventoryStatement = connect.getConnection()
+                        .prepareStatement("SELECT * FROM BloodInventory");
+                ResultSet inventoryResult = inventoryStatement.executeQuery();
+                inventoryTable.setModel(buildTableModel(inventoryResult));
+            }
+
             // Close connection
             connect.getConnection().close();
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -130,8 +179,5 @@ public class DonationHistory extends JFrame {
         // Return TableModel
         return new DefaultTableModel(data, columnNames);
     }
-
-
-
 
 }
